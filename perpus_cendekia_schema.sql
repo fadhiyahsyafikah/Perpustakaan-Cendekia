@@ -1,16 +1,17 @@
---  PERPUSTAKAAN CENDEKIA  |  Skema
+-- PERPUSTAKAAN CENDEKIA  YANG BARU |  Skema
+-- CREATE DATABASE perpus_cendekia;
 
 SET client_encoding = 'UTF8';
 
 -- ----------------------------------------------------------------------
--- 0. BERSIHKAN OBJEK LAMA (agar berkas ini dapat dijalankan berulang kali)
+-- 1. BERSIHKAN OBJEK LAMA (agar berkas ini dapat dijalankan berulang kali)
 -- ----------------------------------------------------------------------
 DROP TABLE IF EXISTS notifications, reservations, reviews, fines, loan_extensions,
                      loans, announcements, books, categories, users CASCADE;
 DROP FUNCTION IF EXISTS wita_today();
 
 -- ----------------------------------------------------------------------
--- 1. FUNGSI BANTU: tanggal hari ini menurut zona waktu Asia/Makassar (WITA)
+-- 2. FUNGSI BANTU: tanggal hari ini menurut zona waktu Asia/Makassar (WITA)
 --    Semua perhitungan tanggal (jatuh tempo, denda, blokir) memakai fungsi ini
 --    sehingga zona waktu cukup diubah di satu tempat (BR-15).
 -- ----------------------------------------------------------------------
@@ -18,24 +19,24 @@ CREATE FUNCTION wita_today() RETURNS date
 LANGUAGE sql STABLE AS $$ SELECT (now() AT TIME ZONE 'Asia/Makassar')::date $$;
 
 -- ----------------------------------------------------------------------
--- 2. TABEL
+-- 3. TABEL
 -- ----------------------------------------------------------------------
 
--- 2.1 users: Admin, Pegawai, Mahasiswa (Guest tidak punya akun)
+-- users: Admin, Pegawai, Mahasiswa, dan Umum (Pengunjung umum terdaftar)
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   full_name VARCHAR(120) NOT NULL,
   email VARCHAR(150) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
-  role VARCHAR(12)  NOT NULL CHECK (role IN ('admin','pegawai','mahasiswa')),
-  identity_number VARCHAR(30) NOT NULL UNIQUE, -- NIM atau NIP
+  role VARCHAR(12)  NOT NULL CHECK (role IN ('admin','pegawai','mahasiswa','umum')),
+  identity_number VARCHAR(30) NOT NULL UNIQUE, -- NIM, NIP, atau Nomor Identitas Umum (NIK)
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX uq_users_email_lower ON users (lower(email));
 
--- 2.2 categories (genre buku)
+-- categories (genre buku)
 CREATE TABLE categories (
   id  SERIAL PRIMARY KEY,
   name VARCHAR(80) NOT NULL UNIQUE,
@@ -43,7 +44,7 @@ CREATE TABLE categories (
   description TEXT
 );
 
--- 2.3 books (soft delete lewat deleted_at)
+-- books (soft delete lewat deleted_at)
 CREATE TABLE books (
   id SERIAL PRIMARY KEY,
   isbn VARCHAR(20)  NOT NULL,
@@ -66,7 +67,7 @@ CREATE TABLE books (
 -- ISBN unik hanya untuk buku yang belum dihapus (soft delete)
 CREATE UNIQUE INDEX uq_books_isbn_active ON books (isbn) WHERE deleted_at IS NULL;
 
--- 2.4 announcements
+-- announcements
 CREATE TABLE announcements (
   id SERIAL PRIMARY KEY,
   title VARCHAR(160) NOT NULL,
@@ -79,7 +80,7 @@ CREATE TABLE announcements (
   updated_at TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
--- 2.5 loans (satu transaksi = satu eksemplar buku oleh satu mahasiswa)
+-- loans (satu transaksi = satu eksemplar buku oleh satu peminjam)
 CREATE TABLE loans (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
@@ -100,11 +101,11 @@ CREATE TABLE loans (
   CONSTRAINT ck_loans_reason CHECK (status <> 'Ditolak' OR reject_reason IS NOT NULL),
   CONSTRAINT ck_loans_date_order CHECK (returned_at IS NULL OR loan_date IS NULL OR returned_at >= loan_date)
 );
--- BR-05: satu mahasiswa tidak boleh punya dua pinjaman aktif atas buku yang sama
+-- BR-05: satu pengguna tidak boleh punya dua pinjaman aktif atas buku yang sama
 CREATE UNIQUE INDEX uq_loans_active_user_book ON loans (user_id, book_id)
   WHERE status IN ('Menunggu Konfirmasi','Sedang Dipinjam','Perpanjangan Diajukan');
 
--- 2.6 loan_extensions (riwayat perpanjangan)
+-- loan_extensions (riwayat perpanjangan)
 CREATE TABLE loan_extensions (
   id SERIAL PRIMARY KEY,
   loan_id INT NOT NULL REFERENCES loans(id) ON DELETE RESTRICT,
@@ -119,7 +120,7 @@ CREATE TABLE loan_extensions (
 -- hanya boleh ada satu pengajuan perpanjangan yang belum diproses per transaksi
 CREATE UNIQUE INDEX uq_ext_pending ON loan_extensions (loan_id) WHERE status = 'Diajukan';
 
--- 2.7 fines (satu denda per transaksi, tarif disimpan sebagai snapshot)
+--fines (satu denda per transaksi, tarif disimpan sebagai snapshot)
 CREATE TABLE fines (
   id SERIAL PRIMARY KEY,
   loan_id INT NOT NULL UNIQUE REFERENCES loans(id) ON DELETE RESTRICT,
@@ -135,7 +136,7 @@ CREATE TABLE fines (
   CONSTRAINT ck_fines_paid   CHECK (status <> 'Lunas' OR paid_at IS NOT NULL)
 );
 
--- 2.8 reviews (satu ulasan per transaksi Selesai)
+-- reviews (satu ulasan per transaksi Selesai)
 CREATE TABLE reviews (
   id SERIAL PRIMARY KEY,
   loan_id INT NOT NULL UNIQUE REFERENCES loans(id) ON DELETE RESTRICT,
@@ -146,7 +147,7 @@ CREATE TABLE reviews (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 2.9 reservations (OPSIONAL: antrean buku yang stoknya habis)
+-- reservations (OPSIONAL: antrean buku yang stoknya habis)
 CREATE TABLE reservations (
   id SERIAL PRIMARY KEY,
   book_id INT NOT NULL REFERENCES books(id) ON DELETE RESTRICT,
@@ -159,7 +160,7 @@ CREATE TABLE reservations (
 CREATE UNIQUE INDEX uq_reservations_active ON reservations (user_id, book_id)
   WHERE status IN ('Menunggu','Siap Diambil');
 
--- 2.10 notifications (OPSIONAL: log notifikasi mahasiswa)
+-- notifications (OPSIONAL: log notifikasi pengguna)
 CREATE TABLE notifications (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
@@ -174,7 +175,7 @@ CREATE UNIQUE INDEX uq_notif_reminder ON notifications (ref_loan_id, type)
   WHERE type = 'Pengingat Jatuh Tempo';
 
 -- ----------------------------------------------------------------------
--- 3. INDEX (percepat pencarian, penyaringan, dan agregasi)
+-- 4. INDEX (percepat pencarian, penyaringan, dan agregasi)
 -- ----------------------------------------------------------------------
 CREATE INDEX idx_loans_user_status ON loans (user_id, status);
 CREATE INDEX idx_loans_book_status ON loans (book_id, status);
