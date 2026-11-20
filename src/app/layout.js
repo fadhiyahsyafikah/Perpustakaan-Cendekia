@@ -5,6 +5,7 @@ import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
+import ScrollReveal from "@/components/ScrollReveal";
 
 export const metadata = {
   title: { default: "Perpustakaan Cendekia", template: "%s | Perpustakaan Cendekia" },
@@ -17,7 +18,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="id">
       <body>
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          <ScrollReveal />
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );
