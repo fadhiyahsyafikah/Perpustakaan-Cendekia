@@ -63,10 +63,11 @@
 }
 
 @layer base {
-  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-  /* Pengatur ukuran huruf (tombol A / A / A): semua ukuran Tailwind memakai rem sehingga ikut membesar */
-  html[data-fs="lg"] { font-size: 112.5%; }
-  html[data-fs="xl"] { font-size: 125%; }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    font-size: 87.5%; /* 14px (dari 16px) agar skala web lebih ringkas di resolusi 100% */
+  }
 
   body {
     display: flex; min-height: 100vh; flex-direction: column; overflow-x: hidden;

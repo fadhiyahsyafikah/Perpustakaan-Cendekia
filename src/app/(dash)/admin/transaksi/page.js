@@ -7,11 +7,6 @@ import { LOAN_STATUS, idLabel } from "@/lib/config";
 import { str, tanggalSingkat, rupiah } from "@/lib/format";
 import { T, btn, ctl } from "@/lib/styles";
 
-// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
-// Remove this opt-out after verifying the segment passes validation without it.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
-export const instant = false;
-
 export const metadata = { title: "Monitoring Transaksi" };
 
 export default async function TransaksiPage({ searchParams }) {

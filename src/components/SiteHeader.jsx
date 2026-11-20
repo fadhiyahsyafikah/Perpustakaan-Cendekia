@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LayoutDashboard, LogOut, Menu, X } from "lucide-react";
 import Logo from "@/components/Logo";
-import FontSize from "@/components/FontSize";
 import { logout } from "@/actions/auth";
 import { btn, cx } from "@/lib/styles";
 
@@ -53,9 +52,9 @@ export default function SiteHeader({ user }) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-n-200 bg-white">
-      <div className="mx-auto flex min-h-[72px] w-full max-w-[1200px] items-center gap-5 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-16 w-full max-w-[1200px] items-center gap-5 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="mr-auto no-underline lg:mr-0" aria-label="Perpustakaan Cendekia, ke Beranda">
-          <Logo />
+          <Logo size={32} />
         </Link>
         <nav className="hidden gap-1 lg:mr-auto lg:ml-4 lg:flex" aria-label="Menu utama">
           {LINKS.map((l) => (
@@ -64,7 +63,7 @@ export default function SiteHeader({ user }) {
               href={l.href}
               aria-current={isActive(l.href) ? "page" : undefined}
               className={cx(
-                "relative rounded-md px-3.5 py-2.5 font-semibold no-underline hover:bg-navy-50 hover:text-navy-800 hover:no-underline",
+                "relative rounded-md px-3.5 py-2.5 font-semibold whitespace-nowrap no-underline hover:bg-navy-50 hover:text-navy-800 hover:no-underline",
                 isActive(l.href) ? "text-navy-800 after:absolute after:right-3.5 after:bottom-0.5 after:left-3.5 after:h-[3px] after:rounded-[3px] after:bg-yellow-500 after:content-['']" : "text-n-700"
               )}
             >
@@ -73,7 +72,6 @@ export default function SiteHeader({ user }) {
           ))}
         </nav>
         <div className="hidden items-center gap-2.5 lg:flex">
-          <FontSize />
           {user && (
             <span className="flex flex-col text-right text-sm leading-tight" title={user.full_name}>
               <b>{user.full_name.split(" ")[0]}</b>
@@ -120,10 +118,6 @@ export default function SiteHeader({ user }) {
               ))}
             </nav>
             <div className="flex flex-col gap-2.5 [&>a]:w-full">{auth}</div>
-            <div className="flex items-center justify-between border-t border-n-200 pt-3.5 font-semibold">
-              <span>Ukuran huruf</span>
-              <FontSize />
-            </div>
           </aside>
         </div>
       )}

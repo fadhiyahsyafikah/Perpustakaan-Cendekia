@@ -8,7 +8,6 @@ import {
   LogOut, Megaphone, Menu, RefreshCw, RotateCcw, Tags, Users, Wallet, X,
 } from "lucide-react";
 import Logo from "@/components/Logo";
-import FontSize from "@/components/FontSize";
 import { logout } from "@/actions/auth";
 import { cx } from "@/lib/styles";
 
@@ -84,7 +83,7 @@ export default function DashShell({ user, menu, counts = {}, unread = 0, childre
   );
 
   return (
-    <div className="grid min-h-screen grid-cols-1 bg-n-50 lg:grid-cols-[260px_1fr]">
+    <div className="grid min-h-screen grid-cols-1 bg-n-50 lg:grid-cols-[240px_1fr]">
       <a href="#konten" className="absolute -top-16 left-2 z-[200] rounded-md bg-navy-800 px-[18px] py-3 font-semibold text-white focus:top-2">Lewati ke konten</a>
       <aside className="sticky top-0 hidden h-screen flex-col gap-3.5 overflow-y-auto bg-navy-800 px-3.5 py-5 text-white lg:flex" aria-label="Navigasi dashboard">{sidebar}</aside>
       {open && (
@@ -108,7 +107,6 @@ export default function DashShell({ user, menu, counts = {}, unread = 0, childre
             <span className="rounded-full bg-navy-100 px-2.5 py-0.5 text-xs font-semibold text-navy-800">{ROLE[user.role]}</span>
           </p>
           <div className="flex items-center gap-2">
-            <FontSize className="max-sm:hidden" />
             {["mahasiswa", "umum"].includes(user.role) && (
               <Link href="/mahasiswa/notifikasi" className="relative inline-flex size-11 cursor-pointer items-center justify-center rounded-md text-navy-800 hover:bg-navy-50" aria-label={`Notifikasi${unread ? `, ${unread} belum dibaca` : ""}`}>
                 <Bell size={22} aria-hidden="true" />
