@@ -7,6 +7,11 @@ import { rupiah, tanggalSingkat } from "@/lib/format";
 import { T } from "@/lib/styles";
 import { idLabel } from "@/lib/config";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export const metadata = { title: "Dashboard Admin" };
 
 export default async function AdminDashboard() {

@@ -10,6 +10,11 @@ import { CONFIG } from "@/lib/config";
 import { str } from "@/lib/format";
 import { T, btn, ctl, stock } from "@/lib/styles";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export const metadata = { title: "Kelola Buku" };
 
 export default async function KelolaBuku({ searchParams }) {

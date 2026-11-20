@@ -4,6 +4,11 @@ import { MENUS } from "@/lib/nav";
 import { staffCounts, unreadCount } from "@/lib/data/loans";
 import { isBorrower } from "@/lib/config";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export const metadata = { robots: { index: false } };
 
 export default async function DashLayout({ children }) {

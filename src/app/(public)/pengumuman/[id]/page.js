@@ -3,6 +3,11 @@ import { notFound } from "next/navigation";
 import { getPublicAnnouncement, otherAnnouncements } from "@/lib/data/announcements";
 import { tanggal } from "@/lib/format";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const a = /^\d+$/.test(id) ? await getPublicAnnouncement(Number(id)) : null;

@@ -14,6 +14,11 @@ import { createReservation, cancelReservation } from "@/actions/reservations";
 import { rupiah, tanggalSingkat, inisial } from "@/lib/format";
 import { btn, stock } from "@/lib/styles";
 
+// @next-codemod-ignore Cache Components adoption: this segment temporarily allows blocking.
+// Remove this opt-out after verifying the segment passes validation without it.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const book = Number.isInteger(+id) ? await getBookDetail(+id) : null;

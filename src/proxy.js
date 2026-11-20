@@ -12,7 +12,7 @@ const RULES = [
     { prefix: "/api/reports", roles: ["admin"], api: true },  
 ];
 
-export async function middleware(req) {
+export async function proxy(req) {
     const { pathname } = req.nextUrl;
     const rule = RULES.find((r) => pathname === r.prefix || pathname.startsWith(r.prefix + "/"));
     if (!rule) return NextResponse.next();
