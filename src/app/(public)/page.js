@@ -12,19 +12,45 @@ export default async function HomePage() {
 const [top, news, user] = await Promise.all([topBooks(5), latestAnnouncements(3), getCurrentUser()]);
   return (
     <>
-      <section className="relative overflow-hidden rounded-b-[24px] bg-[linear-gradient(135deg,var(--color-navy-800),var(--color-navy-700))] pt-12 pb-14 text-white lg:pt-[72px] lg:pb-20 after:absolute after:-top-20 after:-right-20 after:size-300px after:rounded-full after:bg-[radial-gradient(circle,rgba(255,218,3,0.25),transparent_70%)] after:content-[''] [&_h1]:text-[2rem] [&_h1]:leading-[1.2] [&_h1]:text-white sm:[&_h1]:text-[2.75rem] lg:[&_h1]:text-5xl [&_h1_em]:text-yellow-500 [&_h1_em]:not-italic [&_p]:max-w-[56ch] [&_p]:text-[1.0625rem] [&_p]:text-navy-100">
-        <div className="mx-auto w-full max-w-1200px px-4 sm:px-6 lg:px-8 relative z-10 [&>*]:max-w-760px">
-          <h1>Temukan buku, <em>tambah ilmu</em>, pinjam dengan mudah.</h1>
-          <p>Perpustakaan Cendekia membantu Anda mencari buku, mengajukan peminjaman, dan memantau jatuh tempo, semuanya dari satu tempat.</p>
-          <form action="/katalog" method="get" role="search" className="mt-6 mb-2 flex flex-col gap-2.5 rounded-lg bg-white p-2.5 shadow-lg sm:flex-row [&>div]:flex-1 [&_input]:min-h-[52px] [&_input]:border-0 [&_input]:text-[1.0625rem]">
-            <div className="relative [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:top-1/2 [&>svg]:left-3.5 [&>svg]:-translate-y-1/2 [&>svg]:text-n-500 [&_input]:pl-[46px]">
-              <Search size={22} aria-hidden="true" />
-              <label htmlFor="cari-cepat" className="sr-only">Cari judul buku atau nama pengarang</label>
-              <input id="cari-cepat" name="q" type="search" className={ctl.input} placeholder="Ketik judul buku atau nama pengarang..." autoComplete="off" />
+      <section className="mx-auto w-full max-w-[1200px] px-4 pt-6 sm:px-6 lg:px-8">
+        <div className="rounded-2xl bg-navy-800 px-6 py-11 text-white shadow-md sm:px-12 sm:py-14 lg:px-20 lg:py-16">
+          <h1 className="max-w-[680px] text-3xl leading-[1.18] font-bold tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
+            Temukan buku, <span className="text-yellow-500">tambah ilmu,</span> pinjam dengan mudah.
+          </h1>
+          <p className="mt-3.5 mb-0 max-w-[560px] text-base leading-relaxed text-navy-100 sm:text-[1.0625rem]">
+            Perpustakaan Cendekia membantu Anda mencari buku, mengajukan peminjaman, dan memantau jatuh tempo, semuanya dari satu tempat.
+          </p>
+
+          <form
+            action="/katalog"
+            method="get"
+            role="search"
+            className="mt-7 flex flex-col gap-2.5 rounded-2xl bg-white p-2 shadow-lg sm:flex-row sm:items-center sm:rounded-full sm:pl-6"
+          >
+            <label htmlFor="hero-search" className="sr-only">
+              Cari judul buku atau nama pengarang
+            </label>
+            <div className="flex flex-1 items-center gap-3 px-2 sm:px-0">
+              <Search size={20} className="shrink-0 text-n-500" aria-hidden="true" />
+              <input
+                id="hero-search"
+                type="search"
+                name="q"
+                placeholder="Ketik judul buku atau nama pengarang..."
+                className="w-full border-0 bg-transparent py-2.5 text-[0.9375rem] text-n-900 placeholder:text-n-500 focus:outline-none focus-visible:shadow-none"
+              />
             </div>
-            <button type="submit" className={btn("yellow", "lg")}>Telusuri Katalog</button>
+            <button
+              type="submit"
+              className="cursor-pointer rounded-xl bg-yellow-500 px-7 py-3.5 text-[0.9375rem] font-semibold whitespace-nowrap text-navy-800 transition hover:bg-yellow-600 sm:rounded-full"
+            >
+              Telusuri Katalog
+            </button>
           </form>
-          <p className="mt-2.5! text-[0.9375rem]! text-[#c9ccf3]!">Contoh: Laskar Pelangi, Tere Liye, Clean Code</p>
+
+          <p className="mt-3.5 mb-0 text-sm text-navy-100/90">
+            Contoh: Laskar Pelangi, Tere Liye, Clean Code
+          </p>
         </div>
       </section>
 
