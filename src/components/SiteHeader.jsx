@@ -57,11 +57,12 @@ export default function SiteHeader({ user }) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-n-200 bg-white">
-      <div className="mx-auto flex min-h-16 w-full max-w-[1200px] items-center gap-5 px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="mr-auto no-underline lg:mr-0" aria-label="Perpustakaan Cendekia, ke Beranda">
+      <div className="mx-auto flex min-h-16 w-full max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:px-8">
+        <Link href="/" className="justify-self-start no-underline" aria-label="Perpustakaan Cendekia, ke Beranda">
           <Logo size={32} />
         </Link>
-        <nav className="hidden gap-1 lg:mr-auto lg:ml-4 lg:flex" aria-label="Menu utama">
+
+        <nav className="hidden items-center justify-center gap-1 lg:flex" aria-label="Menu utama">
           {LINKS.map((l) => (
             <Link
               key={l.href}
@@ -76,7 +77,8 @@ export default function SiteHeader({ user }) {
             </Link>
           ))}
         </nav>
-        <div className="hidden items-center gap-2.5 lg:flex">
+
+        <div className="hidden items-center justify-end gap-2.5 lg:flex">
           {user && (
             <span className="flex flex-col text-right text-sm leading-tight" title={user.full_name}>
               <b>{user.full_name.split(" ")[0]}</b>
@@ -85,6 +87,7 @@ export default function SiteHeader({ user }) {
           )}
           {auth}
         </div>
+
         <button
           type="button"
           className="inline-flex size-12 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-navy-800 lg:hidden"
