@@ -1,15 +1,65 @@
 import Link from "next/link";
-import { Search, Megaphone, BookOpenCheck, ClipboardList, Handshake, Undo2 } from "lucide-react";
+import { Search, Megaphone, BookOpenCheck, ClipboardList, Handshake, Undo2, Crown } from "lucide-react";
 import { BookCard, AnnouncementCard, EmptyState } from "@/components/ui";
 import { topBooks } from "@/lib/data/books";
 import { latestAnnouncements } from "@/lib/data/announcements";
 import { getCurrentUser } from "@/lib/session";
-import { btn, ctl } from "@/lib/styles";
+import { btn, cx } from "@/lib/styles";
 
 export const metadata = { title: "Beranda" };
 
+// Konfigurasi posisi & tinggi blok podium untuk setiap peringkat (1 sampai 5) di atas latar putih
+const PODIUM_STAGES = [
+  {
+    rankLabel: "#1",
+    colClass:
+      "col-span-2 mx-auto w-[74%] order-1 sm:col-span-2 sm:col-start-3 sm:mx-0 sm:w-full lg:col-span-1 lg:col-start-auto lg:order-3 z-10",
+    cardClass:
+      "[&>*]:border-2 [&>*]:border-yellow-500 [&>*]:shadow-[0_12px_28px_rgba(255,218,3,0.25)]",
+    baseClass:
+      "h-10 lg:h-[112px] border-t-[3px] border-yellow-500 bg-gradient-to-b from-yellow-100 to-yellow-100/20 text-yellow-700",
+  },
+  {
+    rankLabel: "#2",
+    colClass:
+      "col-span-1 order-2 sm:col-span-2 sm:col-start-2 lg:col-span-1 lg:col-start-auto lg:order-2",
+    cardClass:
+      "[&>*]:border-navy-600/35 [&>*]:shadow-sm",
+    baseClass:
+      "h-8 lg:h-[72px] border-t-2 border-navy-600/50 bg-gradient-to-b from-navy-100/90 to-navy-50/30 text-navy-800",
+  },
+  {
+    rankLabel: "#3",
+    colClass:
+      "col-span-1 order-3 sm:col-span-2 sm:col-start-4 lg:col-span-1 lg:col-start-auto lg:order-4",
+    cardClass:
+      "[&>*]:border-navy-600/35 [&>*]:shadow-sm",
+    baseClass:
+      "h-8 lg:h-[52px] border-t-2 border-navy-600/40 bg-gradient-to-b from-navy-100/70 to-navy-50/20 text-navy-800",
+  },
+  {
+    rankLabel: "#4",
+    colClass:
+      "col-span-1 order-4 sm:col-span-2 sm:col-start-2 lg:col-span-1 lg:col-start-auto lg:order-1",
+    cardClass:
+      "[&>*]:border-n-200",
+    baseClass:
+      "h-7 lg:h-[28px] border-t-2 border-n-300 bg-gradient-to-b from-n-100 to-n-50/40 text-n-700",
+  },
+  {
+    rankLabel: "#5",
+    colClass:
+      "col-span-1 order-5 sm:col-span-2 sm:col-start-4 lg:col-span-1 lg:col-start-auto lg:order-5",
+    cardClass:
+      "[&>*]:border-n-200",
+    baseClass:
+      "h-7 lg:h-[28px] border-t-2 border-n-300 bg-gradient-to-b from-n-100 to-n-50/40 text-n-700",
+  },
+];
+
 export default async function HomePage() {
-const [top, news, user] = await Promise.all([topBooks(5), latestAnnouncements(3), getCurrentUser()]);
+  const [top, news, user] = await Promise.all([topBooks(5), latestAnnouncements(3), getCurrentUser()]);
+
   return (
     <>
       <section className="mx-auto w-full max-w-[1200px] px-4 pt-6 sm:px-6 lg:px-8">
@@ -54,26 +104,75 @@ const [top, news, user] = await Promise.all([topBooks(5), latestAnnouncements(3)
         </div>
       </section>
 
-      <section className="py-10 mx-auto w-full max-w-1200px px-4 sm:px-6 lg:px-8" aria-labelledby="h-top">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3 [&_h2]:m-0 [&_h2]:text-2xl [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-n-700">
+      <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8" aria-labelledby="h-top">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3 [&_h2]:m-0 [&_h2]:text-2xl [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-n-700">
           <div>
             <h2 id="h-top">Buku Terpopuler</h2>
             <p>Lima buku yang paling sering dipinjam.</p>
           </div>
           <Link href="/katalog" className="font-semibold underline underline-offset-[3px]">Lihat semua buku</Link>
         </div>
+
         {top.length ? (
-          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pt-1 pb-3.5 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:p-0 lg:grid-cols-5 lg:gap-5 [&>*]:flex-[0_0_62%] [&>*]:snap-start sm:[&>*]:flex-none">
-            {top.map((b, i) => (
-              <BookCard key={b.id} book={b} rank={i + 1} />
-            ))}
+          <div className="relative pt-2">
+            {/* Sorotan hangat tipis di belakang Juara 1 */}
+            <div
+              className="pointer-events-none absolute top-6 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-yellow-500/15 blur-3xl"
+              aria-hidden="true"
+            />
+
+            <div className="relative grid grid-cols-2 items-stretch gap-3.5 sm:grid-cols-6 sm:gap-4 lg:grid-cols-5 lg:items-end lg:gap-4">
+              {top.map((b, i) => {
+                const stage = PODIUM_STAGES[i] || PODIUM_STAGES[4];
+                const isFirst = i === 0;
+                return (
+                  <div
+                    key={b.id}
+                    className={cx(
+                      "group flex flex-col transition-transform duration-300 hover:-translate-y-1.5",
+                      stage.colClass
+                    )}
+                  >
+                    {isFirst && (
+                      <div className="mb-2.5 flex justify-center">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-500 px-3 py-1 text-xs font-bold tracking-wide text-navy-900 shadow-sm">
+                          <Crown size={14} aria-hidden="true" />
+                          <span>Paling Populer</span>
+                        </span>
+                      </div>
+                    )}
+
+                    <div className={cx("flex-1", stage.cardClass)}>
+                      <BookCard book={b} rank={i + 1} />
+                    </div>
+
+                    {/* Blok Podium Bertingkat */}
+                    <div
+                      className={cx(
+                        "mt-2.5 flex w-full items-center justify-center rounded-t-xl font-heading text-xs font-bold tracking-widest uppercase select-none sm:text-sm",
+                        stage.baseClass
+                      )}
+                      aria-hidden="true"
+                    >
+                      {stage.rankLabel}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Garis lantai panggung */}
+            <div
+              className="h-px w-full bg-gradient-to-r from-transparent via-n-300 to-transparent"
+              aria-hidden="true"
+            />
           </div>
         ) : (
           <EmptyState title="Belum ada data peminjaman" text="Buku terpopuler akan tampil setelah ada transaksi peminjaman." />
         )}
       </section>
 
-      <section className="py-10 mx-auto w-full max-w-1200px px-4 sm:px-6 lg:px-8" aria-labelledby="h-cara">
+      <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8" aria-labelledby="h-cara">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3 [&_h2]:m-0 [&_h2]:text-2xl [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-n-700">
           <div>
             <h2 id="h-cara">Cara meminjam buku</h2>
@@ -88,7 +187,7 @@ const [top, news, user] = await Promise.all([topBooks(5), latestAnnouncements(3)
         </ol>
       </section>
 
-      <section className="py-10 mx-auto w-full max-w-1200px px-4 sm:px-6 lg:px-8" aria-labelledby="h-info">
+      <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8" aria-labelledby="h-info">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3 [&_h2]:m-0 [&_h2]:text-2xl [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-n-700">
           <div>
             <h2 id="h-info"><Megaphone size={24} aria-hidden="true" className="align-[-3px]" /> Pengumuman Terbaru</h2>
@@ -106,7 +205,7 @@ const [top, news, user] = await Promise.all([topBooks(5), latestAnnouncements(3)
       </section>
 
       {!user && (
-        <section className="py-10 mx-auto w-full max-w-1200px px-4 sm:px-6 lg:px-8">
+        <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col items-start gap-4 rounded-[24px] bg-navy-50 p-7 md:flex-row md:items-center md:justify-between md:px-10 md:py-9 [&_h2]:mt-0 [&_h2]:mb-1 [&_p]:m-0 [&_p]:text-n-700">
             <div>
               <h2>Ingin meminjam buku?</h2>
