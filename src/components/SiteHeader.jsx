@@ -19,8 +19,13 @@ const ROLE = { admin: "Admin", pegawai: "Pegawai", mahasiswa: "Mahasiswa", umum:
 export default function SiteHeader({ user }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
-  useEffect(() => setOpen(false), [pathname]);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    setOpen(false);
+  }
+
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     const onKey = (e) => e.key === "Escape" && setOpen(false);
