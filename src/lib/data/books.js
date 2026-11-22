@@ -53,7 +53,7 @@ export async function searchBooks({ q = "", kategori, urut, halaman = 1, pageSiz
     return { items: rows, total, page, pages, pageSize, sort: sort.value };
 }
 
-// Homepage: Top 5 buku terpopuler (JOIN + COUNT + GROUP BY, imbang diurutkan judul) - BR-14
+// Homepage: Top 5 buku terpopuler berdasarkan gabungan jumlah pinjam dan rating
 export async function topBooks(limit = 5) {
     const { rows } = await query(
         `SELECT b.id, b.title, b.author, b.cover_url, b.available_stock, c.name AS category_name,
@@ -67,7 +67,10 @@ export async function topBooks(limit = 5) {
         ) lc ON lc.book_id = b.id
         ${RATING_JOIN}
         WHERE b.deleted_at IS NULL
-        ORDER BY COALESCE(lc.loan_count, 0) DESC, b.title ASC
+        ORDER BY (COALESCE(lc.loan_count, 0) * 1.5 + COALESCE(rt.avg_rating, 0)) DESC,
+                COALESCE(lc.loan_count, 0) DESC,
+                COALESCE(rt.avg_rating, 0) DESC,
+                b.title ASC
         LIMIT $1`,
         [limit]
     );
