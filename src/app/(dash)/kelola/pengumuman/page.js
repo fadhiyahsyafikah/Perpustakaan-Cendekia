@@ -19,7 +19,7 @@ export default async function KelolaPengumuman({ searchParams }) {
   const data = await listAnnouncementsManage({ status, kategori, halaman: str(sp.halaman) });
   return (
     <div className="grid gap-5">
-      <PageHeader title="Kelola Pengumuman" subtitle="Pengumuman berstatus Published dengan tanggal rilis hari ini atau sebelumnya tampil di halaman publik." actions={<Link href="/kelola/pengumuman/baru" className={btn("primary")}><Plus size={18} aria-hidden="true" /> Tulis pengumuman</Link>} />
+      <PageHeader title="Kelola Pengumuman" subtitle="Pengumuman berstatus Published dengan tanggal rilis hari ini atau sebelumnya tampil di halaman publik." actions={<Link href="/kelola/pengumuman/baru" className={btn("primary")}><Plus size={18} aria-hidden="true" /> Tambah pengumuman</Link>} />
       <form action="/kelola/pengumuman" method="get" className="mb-4 flex flex-wrap items-end gap-2.5 [&>div]:flex-[1_1_200px] [&>button]:flex-none [&>a]:flex-none">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="status" className="text-[0.9375rem] font-semibold text-n-900">Status</label>

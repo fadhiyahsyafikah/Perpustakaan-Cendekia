@@ -59,7 +59,7 @@ export function Stars({ value, count, size = 16, showEmpty = true }) {
 }
 
 // ---------- Kartu buku ----------
-export function BookCard({ book, rank }) {
+export function BookCard({ book }) {
   const out = book.available_stock <= 0;
   return (
     <Link
@@ -67,14 +67,6 @@ export function BookCard({ book, rank }) {
       className="flex h-full flex-col overflow-hidden rounded-lg border border-n-200 bg-white text-inherit no-underline shadow-sm transition hover:-translate-y-0.5 hover:no-underline hover:shadow-md"
     >
       <div className="relative px-3 pt-3">
-        {rank && (
-          <span
-            className="absolute top-1 left-1 z-[2] grid size-[34px] place-items-center rounded-full border-2 border-white bg-yellow-500 font-heading font-bold text-navy-800 shadow-sm"
-            aria-label={`Peringkat ${rank}`}
-          >
-            {rank}
-          </span>
-        )}
         <BookCover src={book.cover_url} title={book.title} />
       </div>
       <div className="flex flex-1 flex-col gap-1 px-3.5 pt-3 pb-4">

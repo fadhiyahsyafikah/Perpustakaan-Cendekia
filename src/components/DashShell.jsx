@@ -77,7 +77,7 @@ export default function DashShell({ user, menu, counts = {}, unread = 0, childre
       </nav>
       <div className="grid gap-0.5 border-t border-white/15 pt-2">
         <Link href="/" className={SIDE_ITEM}>
-          <Globe size={17} className="shrink-0" aria-hidden="true" /> Lihat situs publik
+          <Globe size={17} className="shrink-0" aria-hidden="true" /> Pratinjau
         </Link>
         <form action={logout}>
           <button type="submit" className={SIDE_ITEM}>

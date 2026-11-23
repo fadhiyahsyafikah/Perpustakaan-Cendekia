@@ -107,8 +107,7 @@ export default async function HomePage() {
       <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8" aria-labelledby="h-top">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3 [&_h2]:m-0 [&_h2]:text-2xl [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-n-700">
           <div>
-            <h2 id="h-top">Buku Terpopuler</h2>
-            <p>Lima buku yang paling sering dipinjam.</p>
+            <h1 id="h-top">Buku Terpopuler</h1>
           </div>
           <Link href="/katalog" className="font-semibold underline underline-offset-[3px]">Lihat semua buku</Link>
         </div>
@@ -137,13 +136,12 @@ export default async function HomePage() {
                       <div className="mb-2.5 flex justify-center">
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-500 px-3 py-1 text-xs font-bold tracking-wide text-navy-900 shadow-sm">
                           <Crown size={14} aria-hidden="true" />
-                          <span>Paling Populer</span>
                         </span>
                       </div>
                     )}
 
                     <div className={cx("flex-1", stage.cardClass)}>
-                      <BookCard book={b} rank={i + 1} />
+                      <BookCard book={b} />
                     </div>
 
                     {/* Blok Podium Bertingkat */}
@@ -175,8 +173,7 @@ export default async function HomePage() {
       <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8" aria-labelledby="h-cara">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3 [&_h2]:m-0 [&_h2]:text-2xl [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-n-700">
           <div>
-            <h2 id="h-cara">Cara meminjam buku</h2>
-            <p>Empat langkah mudah, tanpa perlu antre lama.</p>
+            <h1 id="h-cara">Cara meminjam buku</h1>
           </div>
         </div>
         <ol className="[counter-reset:step] grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -190,8 +187,7 @@ export default async function HomePage() {
       <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8" aria-labelledby="h-info">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3 [&_h2]:m-0 [&_h2]:text-2xl [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-n-700">
           <div>
-            <h2 id="h-info"><Megaphone size={24} aria-hidden="true" className="align-[-3px]" /> Pengumuman Terbaru</h2>
-            <p>Informasi layanan, jadwal, dan acara perpustakaan.</p>
+            <h1 id="h-info"><Megaphone size={24} aria-hidden="true" className="align-[-3px]" /> Pengumuman Terbaru</h1>
           </div>
           <Link href="/pengumuman" className="font-semibold underline underline-offset-[3px]">Semua pengumuman</Link>
         </div>

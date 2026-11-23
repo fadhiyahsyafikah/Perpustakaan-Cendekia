@@ -25,7 +25,7 @@ export const email = req("Email")
 export const campusEmail = email.refine(
     (v) => isCampusEmail(v),
     () => ({ message: `Gunakan email kampus Anda, misalnya nama@kampus.${campusDomains()[0] || "ac.id"}.` })
-    );
+);
 
 export const password = z
     .string({ required_error: "Password wajib diisi." })
@@ -57,10 +57,10 @@ export const registerSchema = z
     })
     .superRefine((d, ctx) => {
         if (d.password !== d.password_confirm) {
-        ctx.addIssue({ code: "custom", path: ["password_confirm"], message: "Konfirmasi password tidak sama." });
+            ctx.addIssue({ code: "custom", path: ["password_confirm"], message: "Konfirmasi password tidak sama." });
         }
         if (d.account_type === "mahasiswa" && !isCampusEmail(d.email)) {
-        ctx.addIssue({ code: "custom", path: ["email"], message: `Mahasiswa wajib memakai email kampus, misalnya nama@kampus.${campusDomains()[0] || "ac.id"}. Bukan mahasiswa? Pilih jenis akun Pengunjung Umum.` });
+            ctx.addIssue({ code: "custom", path: ["email"], message: `Mahasiswa wajib memakai email kampus, misalnya nama@kampus.${campusDomains()[0] || "ac.id"}. Bukan mahasiswa? Pilih jenis akun Pengunjung Umum.` });
         }
     });
 
@@ -76,8 +76,8 @@ export const userCreateSchema = z.object({
 export const userUpdateSchema = z.object({
     full_name: text("Nama lengkap", 120),
     email,
-    role: z.enum(ROLES, { errorMap: () => ({ message: "Pilih peran yang tersedia." }) }),
-    is_active: z.enum(["true", "false"]).default("true"),
+    role: z.enum(ROLES, { errorMap: () => ({ message: "Pilih peran yang tersedia." }) }).optional(),
+    is_active: z.enum(["true", "false"]).optional(),
     new_password: z.preprocess((v) => (v === "" ? undefined : v), password.optional()),
 });
 

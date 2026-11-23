@@ -33,7 +33,7 @@ export async function createUser(prev, formData) {
   return ok(`Akun ${d.full_name} berhasil dibuat.`, { redirectTo: "/admin/users" });
 }
 
-// USR-03 (BR-12: Admin tidak boleh menurunkan role atau menonaktifkan akunnya sendiri)
+// USR-03 (BR-12: Peran dan status aktif akun Admin tidak dapat diubah)
 export async function updateUser(prev, formData) {
   const auth = await authorize(["admin"]);
   if (!auth.ok) return fail(auth.message);
@@ -43,17 +43,30 @@ export async function updateUser(prev, formData) {
   const parsed = userUpdateSchema.safeParse(raw);
   if (!parsed.success) return fail("Periksa kembali isian Anda.", zodErrors(parsed.error), keep(raw));
   const d = parsed.data;
-  if (id.data === auth.user.id && (d.role !== "admin" || d.is_active === "false")) {
-    return fail("Anda tidak dapat menurunkan peran atau menonaktifkan akun Anda sendiri.", { role: "Akun Anda sendiri harus tetap Admin dan aktif." }, keep(raw));
-  }
+
   try {
+    const existing = await query("SELECT id, role, is_active FROM users WHERE id = $1", [id.data]);
+    const target = existing.rows[0];
+    if (!target) return fail("Akun tidak ditemukan.");
+
+    const isLockedAdmin = target.role === "admin" || id.data === auth.user.id;
+    if (isLockedAdmin && ((d.role && d.role !== target.role) || (d.is_active && d.is_active !== String(target.is_active)))) {
+      return fail("Peran dan status akun Admin tidak dapat diubah.", {}, keep(raw));
+    }
+
+    if (!isLockedAdmin && !d.role) {
+      return fail("Periksa kembali isian Anda.", { role: "Pilih peran yang tersedia." }, keep(raw));
+    }
+
+    const nextRole = isLockedAdmin ? target.role : d.role;
+    const nextActive = isLockedAdmin ? target.is_active : (d.is_active ? d.is_active === "true" : target.is_active);
     const hash = d.new_password ? await bcrypt.hash(d.new_password, 10) : null;
-    const r = await query(
+
+    await query(
       `UPDATE users SET full_name = $2, email = $3, role = $4, is_active = $5,
               password_hash = COALESCE($6, password_hash), updated_at = now() WHERE id = $1`,
-      [id.data, d.full_name, d.email, d.role, d.is_active === "true", hash]
+      [id.data, d.full_name, d.email, nextRole, nextActive, hash]
     );
-    if (r.rowCount === 0) return fail("Akun tidak ditemukan.");
   } catch (e) {
     return fail(dbMessage(e), {}, keep(raw));
   }

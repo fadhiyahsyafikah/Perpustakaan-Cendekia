@@ -65,7 +65,8 @@ export function AnnouncementForm({ action, item }) {
 
 export function UserForm({ action, user, selfId }) {
   const edit = !!user;
-  const self = edit && user.id === selfId;
+  const lockAdminFields = edit && (user.role === "admin" || user.id === selfId);
+
   return (
     <ActionForm action={action} className="grid gap-[18px]" inlineError>
       {edit && <input type="hidden" name="id" value={user.id} />}
@@ -80,11 +81,59 @@ export function UserForm({ action, user, selfId }) {
         ) : (
           <TextField label="Nomor identitas (NIM / NIP / NIK)" name="identity_number" required maxLength={30} />
         )}
-        <SelectField label="Peran" name="role" required defaultValue={user?.role ?? "mahasiswa"} options={ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))} />
+
+        {lockAdminFields ? (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[0.9375rem] font-semibold text-n-900">Peran</span>
+            <input className={ctl.input} value={ROLE_LABEL[user.role]} readOnly disabled aria-describedby="role-note" />
+            <p id="role-note" className="m-0 text-sm text-n-700">Peran akun Admin tidak dapat diubah.</p>
+          </div>
+        ) : (
+          <SelectField
+            label="Peran"
+            name="role"
+            required
+            defaultValue={user?.role ?? "mahasiswa"}
+            options={ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))}
+          />
+        )}
+
         {edit ? (
-          <SelectField label="Status akun" name="is_active" defaultValue={String(user.is_active)} options={[{ value: "true", label: "Aktif" }, { value: "false", label: "Nonaktif (tidak bisa masuk)" }]} hint={self ? "Akun Anda sendiri harus tetap Admin dan aktif." : undefined} />
+          lockAdminFields ? (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[0.9375rem] font-semibold text-n-900">Status akun</span>
+              <input
+                className={ctl.input}
+                value={user.is_active ? "Aktif" : "Nonaktif (tidak bisa masuk)"}
+                readOnly
+                disabled
+                aria-describedby="status-note"
+              />
+              <p id="status-note" className="m-0 text-sm text-n-700">Status akun Admin tidak dapat diubah.</p>
+            </div>
+          ) : (
+            <SelectField
+              label="Status akun"
+              name="is_active"
+              defaultValue={String(user.is_active)}
+              options={[
+                { value: "true", label: "Aktif" },
+                { value: "false", label: "Nonaktif (tidak bisa masuk)" },
+              ]}
+            />
+          )
         ) : null}
-        <TextField label={edit ? "Password baru (opsional)" : "Password"} name="password" type="password" required={!edit} minLength={8} autoComplete="new-password" hint="Minimal 8 karakter, berisi huruf dan angka." {...(edit ? { name: "new_password" } : {})} />
+
+        <TextField
+          label={edit ? "Password baru (opsional)" : "Password"}
+          name="password"
+          type="password"
+          required={!edit}
+          minLength={8}
+          autoComplete="new-password"
+          hint="Minimal 8 karakter, berisi huruf dan angka."
+          {...(edit ? { name: "new_password" } : {})}
+        />
       </div>
       <Actions cancel="/admin/users" label={edit ? "Simpan perubahan" : "Buat akun"} />
     </ActionForm>
