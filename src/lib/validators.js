@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isCampusEmail, campusDomains, ROLES, ANNOUNCEMENT_CATEGORIES, ANNOUNCEMENT_STATUSES, CONFIG } from "@/lib/config";
+import { isCampusEmail, campusDomains, ASSIGNABLE_ROLES, ANNOUNCEMENT_CATEGORIES, ANNOUNCEMENT_STATUSES, CONFIG } from "@/lib/config";
 
 // pembantu
 const req = (label) => z.string({ required_error: `${label} wajib diisi.`, invalid_type_error: `${label} wajib diisi.` }).trim().min(1, `${label} wajib diisi.`);
@@ -64,19 +64,19 @@ export const registerSchema = z
         }
     });
 
-// pengguna (Admin)
+// pengguna (Admin) - hanya dapat membuat atau menetapkan peran selain Admin
 export const userCreateSchema = z.object({
     full_name: text("Nama lengkap", 120),
     email,
     password,
-    role: z.enum(ROLES, { errorMap: () => ({ message: "Pilih peran yang tersedia." }) }),
+    role: z.enum(ASSIGNABLE_ROLES, { errorMap: () => ({ message: "Pilih peran yang tersedia." }) }),
     identity_number: identity,
 });
 
 export const userUpdateSchema = z.object({
     full_name: text("Nama lengkap", 120),
     email,
-    role: z.enum(ROLES, { errorMap: () => ({ message: "Pilih peran yang tersedia." }) }).optional(),
+    role: z.enum(ASSIGNABLE_ROLES, { errorMap: () => ({ message: "Pilih peran yang tersedia." }) }).optional(),
     is_active: z.enum(["true", "false"]).optional(),
     new_password: z.preprocess((v) => (v === "" ? undefined : v), password.optional()),
 });

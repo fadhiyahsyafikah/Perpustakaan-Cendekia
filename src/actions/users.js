@@ -12,7 +12,7 @@ const keep = (raw) => {
   return rest;
 };
 
-// USR-02
+// USR-02 (Hanya boleh membuat akun pegawai, mahasiswa, atau pengunjung umum)
 export async function createUser(prev, formData) {
   const auth = await authorize(["admin"]);
   if (!auth.ok) return fail(auth.message);
@@ -20,6 +20,9 @@ export async function createUser(prev, formData) {
   const parsed = userCreateSchema.safeParse(raw);
   if (!parsed.success) return fail("Periksa kembali isian Anda.", zodErrors(parsed.error), keep(raw));
   const d = parsed.data;
+  if (d.role === "admin") {
+    return fail("Tidak dapat membuat akun Admin baru.", { role: "Pilih peran selain Admin." }, keep(raw));
+  }
   try {
     const hash = await bcrypt.hash(d.password, 10);
     await query(
@@ -33,7 +36,7 @@ export async function createUser(prev, formData) {
   return ok(`Akun ${d.full_name} berhasil dibuat.`, { redirectTo: "/admin/users" });
 }
 
-// USR-03 (BR-12: Peran dan status aktif akun Admin tidak dapat diubah)
+// USR-03 (BR-12: Peran dan status aktif akun Admin tidak dapat diubah; pengguna lain tidak bisa diubah menjadi Admin)
 export async function updateUser(prev, formData) {
   const auth = await authorize(["admin"]);
   if (!auth.ok) return fail(auth.message);
@@ -52,6 +55,10 @@ export async function updateUser(prev, formData) {
     const isLockedAdmin = target.role === "admin" || id.data === auth.user.id;
     if (isLockedAdmin && ((d.role && d.role !== target.role) || (d.is_active && d.is_active !== String(target.is_active)))) {
       return fail("Peran dan status akun Admin tidak dapat diubah.", {}, keep(raw));
+    }
+
+    if (!isLockedAdmin && d.role === "admin") {
+      return fail("Peran pengguna tidak dapat diubah menjadi Admin.", { role: "Pilih peran yang tersedia." }, keep(raw));
     }
 
     if (!isLockedAdmin && !d.role) {

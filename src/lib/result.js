@@ -25,6 +25,7 @@ export function dbMessage(err, fallback = "Terjadi kesalahan pada server. Silaka
     if (err?.name === "BusinessError") return err.message;
     if (err?.code === "23505") {
         const c = err.constraint || "";
+        if (c.includes("single_admin")) return "Sistem hanya mengizinkan satu akun Admin.";
         if (c.includes("email")) return "Email ini sudah terdaftar. Gunakan email lain.";
         if (c.includes("identity")) return "Nomor identitas (NIM/NIP/NIK) sudah terdaftar.";
         if (c.includes("isbn")) return "ISBN sudah dipakai oleh buku lain.";

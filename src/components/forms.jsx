@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Save } from "lucide-react";
 import { ActionForm, SubmitButton, TextField, SelectField, TextAreaField } from "@/components/form";
 import CoverUploader from "@/components/CoverUploader";
-import { ANNOUNCEMENT_CATEGORIES, ANNOUNCEMENT_STATUSES, ROLES, ROLE_LABEL } from "@/lib/config";
+import { ANNOUNCEMENT_CATEGORIES, ANNOUNCEMENT_STATUSES, ASSIGNABLE_ROLES, ROLE_LABEL } from "@/lib/config";
 import { todayLocal } from "@/lib/format";
 import { btn, ctl } from "@/lib/styles";
 
@@ -94,7 +94,7 @@ export function UserForm({ action, user, selfId }) {
             name="role"
             required
             defaultValue={user?.role ?? "mahasiswa"}
-            options={ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))}
+            options={ASSIGNABLE_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))}
           />
         )}
 

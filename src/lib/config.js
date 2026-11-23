@@ -24,6 +24,8 @@ export const ACTIVE_LOAN_STATUSES = [LOAN_STATUS.MENUNGGU, LOAN_STATUS.DIPINJAM,
 export const BORROWED_STATUSES = [LOAN_STATUS.DIPINJAM, LOAN_STATUS.PERPANJANGAN];
 export const ROLES = ["admin", "pegawai", "mahasiswa", "umum"];
 export const ROLE_LABEL = { admin: "Admin", pegawai: "Pegawai Perpustakaan", mahasiswa: "Mahasiswa", umum: "Pengunjung Umum" };
+// Peran yang dapat dibuat atau dipilih pada formulir pengguna (maksimal 1 akun Admin)
+export const ASSIGNABLE_ROLES = ["pegawai", "mahasiswa", "umum"];
 // Peran yang boleh meminjam buku, menulis ulasan, dan punya dashboard anggota
 export const BORROWER_ROLES = ["mahasiswa", "umum"];
 export const isBorrower = (role) => BORROWER_ROLES.includes(role);
