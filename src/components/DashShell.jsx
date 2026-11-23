@@ -112,16 +112,8 @@ export default function DashShell({ user, menu, counts = {}, unread = 0, childre
             Halo, <b>{user.full_name.split(" ")[0]}</b>
             <span className="rounded-full bg-navy-100 px-2 py-0.5 text-[0.6875rem] font-semibold text-navy-800">{ROLE[user.role]}</span>
           </p>
-          <div className="flex items-center gap-2">
-            {["mahasiswa", "umum"].includes(user.role) && (
-              <Link href="/mahasiswa/notifikasi" className="relative inline-flex size-9 cursor-pointer items-center justify-center rounded-md text-navy-800 hover:bg-navy-50" aria-label={`Notifikasi${unread ? `, ${unread} belum dibaca` : ""}`}>
-                <Bell size={19} aria-hidden="true" />
-                {unread > 0 && <i className={cx(COUNT, "absolute top-0.5 right-0 h-4 min-w-4 text-[0.625rem]")}>{unread}</i>}
-              </Link>
-            )}
-          </div>
         </header>
-        <main id="konten" className="w-full max-w-[1200px] px-4 pt-5 pb-10 outline-none lg:px-6 lg:pt-6 lg:pb-12" tabIndex={-1}>{children}</main>
+        <main id="konten" className="flex w-full flex-1 flex-col px-4 pt-5 pb-10 outline-none lg:px-6 lg:pt-6 lg:pb-12" tabIndex={-1}>{children}</main>
       </div>
     </div>
   );

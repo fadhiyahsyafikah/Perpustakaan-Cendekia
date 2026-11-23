@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, Megaphone, BookOpenCheck, ClipboardList, Handshake, Undo2, Crown } from "lucide-react";
+import { Search, Megaphone, BookOpenCheck, ClipboardList, Handshake, Undo2, Crown, ArrowRight } from "lucide-react";
 import { BookCard, AnnouncementCard, EmptyState } from "@/components/ui";
 import { topBooks } from "@/lib/data/books";
 import { latestAnnouncements } from "@/lib/data/announcements";
@@ -109,7 +109,15 @@ export default async function HomePage() {
           <div>
             <h1 id="h-top">Buku Terpopuler</h1>
           </div>
-          <Link href="/katalog" className="font-semibold underline underline-offset-[3px]">Lihat semua buku</Link>
+          <Link
+            href="/katalog"
+            className="group inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[0.9375rem] font-semibold text-navy-800 no-underline transition-all duration-200 hover:bg-navy-50 hover:no-underline"
+          >
+            <span>Lihat semua buku</span>
+            <span className="grid size-6 place-items-center rounded-full bg-navy-50 text-navy-800 transition-all duration-200 group-hover:bg-yellow-500 group-hover:text-navy-900">
+              <ArrowRight size={14} aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5" />
+            </span>
+          </Link>
         </div>
 
         {top.length ? (
@@ -189,7 +197,15 @@ export default async function HomePage() {
           <div>
             <h1 id="h-info"><Megaphone size={24} aria-hidden="true" className="align-[-3px]" /> Pengumuman Terbaru</h1>
           </div>
-          <Link href="/pengumuman" className="font-semibold underline underline-offset-[3px]">Semua pengumuman</Link>
+          <Link
+            href="/pengumuman"
+            className="group inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[0.9375rem] font-semibold text-navy-800 no-underline transition-all duration-200 hover:bg-navy-50 hover:no-underline"
+          >
+            <span>Semua pengumuman</span>
+            <span className="grid size-6 place-items-center rounded-full bg-navy-50 text-navy-800 transition-all duration-200 group-hover:bg-yellow-500 group-hover:text-navy-900">
+              <ArrowRight size={14} aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-0.5" />
+            </span>
+          </Link>
         </div>
         {news.length ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -202,14 +218,18 @@ export default async function HomePage() {
 
       {!user && (
         <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-start gap-4 rounded-[24px] bg-navy-50 p-7 md:flex-row md:items-center md:justify-between md:px-10 md:py-9 [&_h2]:mt-0 [&_h2]:mb-1 [&_p]:m-0 [&_p]:text-n-700">
-            <div>
+          <div className="flex flex-col items-start justify-center gap-6 rounded-[24px] bg-navy-50 p-7 md:px-10 md:py-9 lg:flex-row lg:items-center lg:gap-12 [&_h2]:mt-0 [&_h2]:mb-1 [&_p]:m-0 [&_p]:text-n-700">
+            <div className="max-w-[52ch]">
               <h2>Ingin meminjam buku?</h2>
               <p>Mahasiswa mendaftar dengan email kampus, pengunjung umum dengan email apa saja. Gratis dan hanya butuh satu menit.</p>
             </div>
-            <div className="flex flex-wrap gap-2.5">
-              <Link href="/register" className={btn("primary", "lg")}><BookOpenCheck size={20} aria-hidden="true" /> Daftar Sekarang</Link>
-              <Link href="/login" className={btn("outline", "lg")}>Sudah punya akun? Masuk</Link>
+            <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
+              <Link href="/register" className={cx(btn("primary", "lg"), "whitespace-nowrap")}>
+                <BookOpenCheck size={20} aria-hidden="true" /> Daftar Sekarang
+              </Link>
+              <Link href="/login" className={cx(btn("outline", "lg"), "whitespace-nowrap")}>
+                Sudah punya akun? Masuk
+              </Link>
             </div>
           </div>
         </section>

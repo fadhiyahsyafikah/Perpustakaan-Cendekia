@@ -83,9 +83,9 @@ export default async function BookDetailPage({ params }) {
         <Link href="/">Beranda</Link> / <Link href="/katalog">Katalog</Link> / <span aria-current="page">{book.title}</span>
       </nav>
 
-      <div className="grid grid-cols-1 gap-7 md:grid-cols-[280px_1fr] lg:grid-cols-[340px_1fr] lg:gap-10">
-        <div className="mx-auto w-full max-w-[190px] self-start md:max-w-[320px]">
-          <BookCover src={book.cover_url} title={book.title} className="shadow-md" />
+      <div className="grid grid-cols-1 gap-7 md:grid-cols-[320px_1fr] lg:grid-cols-[380px_1fr] lg:gap-10">
+        <div className="mx-auto w-full max-w-[240px] self-start md:max-w-full">
+          <BookCover src={book.cover_url} title={book.title} full className="shadow-md" />
         </div>
         <div>
           <span className="inline-block max-w-full rounded-sm bg-navy-50 px-2.5 py-0.5 text-xs font-semibold text-navy-800">{book.category_name}</span>

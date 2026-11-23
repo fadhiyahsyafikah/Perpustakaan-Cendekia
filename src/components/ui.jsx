@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, CircleAlert, CircleCheck, CircleX, Clock, ClockAlert, RefreshCw, Star, Inbox } from "lucide-react";
+import { ArrowRight, BookOpen, CircleAlert, CircleCheck, CircleX, Clock, ClockAlert, RefreshCw, Star, Inbox } from "lucide-react";
 import BookCover from "@/components/BookCover";
 import { tanggalSingkat } from "@/lib/format";
 import { badge, cx, stock } from "@/lib/styles";
@@ -91,11 +91,27 @@ export function AnnouncementCard({ item }) {
     <article className={cx("flex flex-col gap-1.5 rounded-lg border border-l-4 border-n-200 bg-white p-[18px] shadow-sm transition-shadow hover:shadow-md", CAT_BORDER[item.category] || "border-l-navy-800")}>
       <span className="inline-block max-w-full self-start rounded-sm bg-navy-50 px-2.5 py-0.5 text-xs font-semibold text-navy-800">{item.category}</span>
       <h3 className="mt-1 mb-0 text-[1.0625rem]">
-        <Link href={`/pengumuman/${item.id}`} className="text-navy-800 no-underline hover:underline">{item.title}</Link>
+        <Link href={`/pengumuman/${item.id}`} className="text-navy-800 no-underline transition-colors hover:text-navy-600 hover:no-underline">{item.title}</Link>
       </h3>
       <time className="text-sm text-n-700">{tanggalSingkat(item.release_date)}</time>
       <p className="mt-1 mb-0 flex-1 text-[0.9375rem] text-n-700">{excerpt}{item.content.length > 140 ? "..." : ""}</p>
-      <Link href={`/pengumuman/${item.id}`} className="font-semibold underline underline-offset-[3px]">Baca selengkapnya</Link>
+      <Link
+        href={`/pengumuman/${item.id}`}
+        className="group/link relative mt-1 inline-flex w-fit items-center gap-1.5 self-start font-semibold text-navy-800 no-underline transition-colors hover:text-navy-900 hover:no-underline"
+      >
+        <span className="relative z-10">
+          Baca selengkapnya
+          <span
+            aria-hidden="true"
+            className="absolute bottom-0.5 left-0 -z-10 h-2 w-0 rounded-xs bg-yellow-500/45 transition-all duration-300 ease-out group-hover/link:w-full"
+          />
+        </span>
+        <ArrowRight
+          size={16}
+          aria-hidden="true"
+          className="transition-transform duration-300 ease-out group-hover/link:translate-x-1.5"
+        />
+      </Link>
     </article>
   );
 }

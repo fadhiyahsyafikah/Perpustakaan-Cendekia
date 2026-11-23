@@ -4,11 +4,17 @@ import { useState } from "react";
 import { BookOpen } from "lucide-react";
 import { cx } from "@/lib/styles";
 
-// Sampul 3:4. Tanpa gambar (atau gambar gagal dimuat) tampil sampul pengganti: Navy, ikon buku kuning, inisial judul.
-export default function BookCover({ src, title, className = "", small = false }) {
+// Sampul buku. Tanpa gambar (atau gambar gagal dimuat) tampil sampul pengganti: Navy, ikon buku kuning, inisial judul.
+export default function BookCover({ src, title, className = "", small = false, full = false }) {
   const [broken, setBroken] = useState(false);
   const initials = String(title || "?").replace(/[^\p{L}\p{N} ]/gu, "").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-  const frame = cx("aspect-[3/4] overflow-hidden rounded-md border", small ? "w-12 flex-none" : "w-full", className);
+  const frame = cx(
+    full && src && !broken ? "w-full" : "aspect-[2/3]",
+    "overflow-hidden rounded-md border",
+    small ? "w-12 flex-none" : "w-full",
+    className
+  );
+
   if (!src || broken) {
     return (
       <div
@@ -21,10 +27,17 @@ export default function BookCover({ src, title, className = "", small = false })
       </div>
     );
   }
+
   return (
     <div className={cx(frame, "border-n-200 bg-n-100")}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={`Sampul buku ${title}`} loading="lazy" onError={() => setBroken(true)} className="block size-full object-cover" />
+      <img
+        src={src}
+        alt={`Sampul buku ${title}`}
+        loading="lazy"
+        onError={() => setBroken(true)}
+        className={full ? "block h-auto w-full" : "block size-full object-cover"}
+      />
     </div>
   );
 }

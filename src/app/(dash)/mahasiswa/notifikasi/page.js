@@ -17,7 +17,7 @@ export default async function NotifikasiPage() {
   const items = await studentNotifications(user.id);
   const unread = items.filter((n) => !n.is_read).length;
   return (
-    <div className="grid max-w-[800px] gap-5">
+    <div className="flex w-full flex-1 flex-col">
       <PageHeader
         title="Notifikasi"
         subtitle="Pengingat jatuh tempo, denda baru, dan keputusan atas pengajuan Anda."
@@ -37,7 +37,12 @@ export default async function NotifikasiPage() {
           ))}
         </div>
       ) : (
-        <EmptyState icon={Bell} title="Belum ada notifikasi" text="Notifikasi akan muncul saat ada pembaruan pada pinjaman atau denda Anda." />
+        <EmptyState
+          icon={Bell}
+          title="Belum ada notifikasi"
+          text="Notifikasi akan muncul saat ada pembaruan pada pinjaman atau denda Anda."
+          className="min-h-[68vh] flex-1"
+        />
       )}
     </div>
   );
