@@ -13,12 +13,12 @@ export default function Footer() {
         <div>
           <h2>Jam layanan</h2>
           <p><Clock size={16} aria-hidden="true" /> Senin sampai Jumat, 08.00 sampai 17.00 WITA</p>
-          <p><Clock size={16} aria-hidden="true" /> Sabtu, 09.00 sampai 14.00 WITA</p>
+          <p><Clock size={16} aria-hidden="true" /> Sabtu, 09.00 sampai 15.00 WITA</p>
         </div>
         <div>
           <h2>Kontak</h2>
-          <p><MapPin size={16} aria-hidden="true" /> Meja sirkulasi, Gedung Perpustakaan</p>
-          <p><Mail size={16} aria-hidden="true" /> layanan@cendekia.ac.id</p>
+          <p><MapPin size={16} aria-hidden="true" /> Meja sirkulasi, Gedung Perpustakaan Cendekia, Jl. Raya Pendidikan</p>
+          <p><Mail size={16} aria-hidden="true" /> layanan.perpus@cendekia.ac.id</p>
         </div>
         <div>
           <h2>Tautan cepat</h2>
