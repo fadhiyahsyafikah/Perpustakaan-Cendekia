@@ -218,17 +218,17 @@ export default async function HomePage() {
 
       {!user && (
         <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-start justify-center gap-6 rounded-[24px] bg-navy-50 p-7 md:px-10 md:py-9 lg:flex-row lg:items-center lg:gap-12 [&_h2]:mt-0 [&_h2]:mb-1 [&_p]:m-0 [&_p]:text-n-700">
-            <div className="max-w-[52ch]">
-              <h2>Ingin meminjam buku?</h2>
+          <div className="flex flex-col items-start justify-between gap-6 rounded-[24px] bg-navy-50 p-7 md:px-10 md:py-9 lg:flex-row lg:items-center [&_h2]:mt-0 [&_h2]:mb-1 [&_p]:m-0 [&_p]:text-n-700">
+            <div className="max-w-[50ch]">
+              <h1>Ingin meminjam buku?</h1>
               <p>Mahasiswa mendaftar dengan email kampus, pengunjung umum dengan email apa saja. Gratis dan hanya butuh satu menit.</p>
             </div>
             <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
-              <Link href="/register" className={cx(btn("primary", "lg"), "whitespace-nowrap")}>
-                <BookOpenCheck size={20} aria-hidden="true" /> Daftar Sekarang
-              </Link>
               <Link href="/login" className={cx(btn("outline", "lg"), "whitespace-nowrap")}>
                 Sudah punya akun? Masuk
+              </Link>
+              <Link href="/register" className={cx(btn("primary", "lg"), "whitespace-nowrap")}>
+                <BookOpenCheck size={20} aria-hidden="true" /> Daftar Sekarang
               </Link>
             </div>
           </div>
