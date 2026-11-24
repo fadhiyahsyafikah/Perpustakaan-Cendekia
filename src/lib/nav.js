@@ -1,9 +1,9 @@
 // Menu sidebar per role. "icon" adalah kunci ikon (dipetakan di DashShell).
 const MEMBER_MENU = [
-    { href: "/mahasiswa/dashboard", label: "Dashboard", icon: "dashboard" },
+    { href: "/pengunjung/dashboard", label: "Dashboard", icon: "dashboard" },
     { href: "/katalog", label: "Cari Buku", icon: "library" },
-    { href: "/mahasiswa/riwayat", label: "Riwayat Pinjam", icon: "history" },
-    { href: "/mahasiswa/notifikasi", label: "Notifikasi", icon: "bell" },
+    { href: "/pengunjung/riwayat", label: "Riwayat Pinjam", icon: "history" },
+    { href: "/pengunjung/notifikasi", label: "Notifikasi", icon: "bell" },
     { href: "/pengumuman", label: "Pengumuman", icon: "megaphone" },
 ];
 

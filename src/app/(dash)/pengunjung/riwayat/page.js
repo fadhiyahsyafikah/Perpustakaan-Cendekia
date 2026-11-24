@@ -13,9 +13,9 @@ export default async function RiwayatPage({ searchParams }) {
   const data = await studentHistory(user.id, { halaman: str(sp.halaman) });
   return (
     <div className="grid gap-5">
-      <PageHeader title="Riwayat Pinjam" subtitle="Seluruh transaksi yang sudah selesai atau ditolak. Tulis ulasan untuk buku yang sudah Anda kembalikan." back={{ href: "/mahasiswa/dashboard", label: "Kembali ke dashboard" }} />
+      <PageHeader title="Riwayat Pinjam" subtitle="Seluruh transaksi yang sudah selesai atau ditolak. Tulis ulasan untuk buku yang sudah Anda kembalikan." back={{ href: "/pengunjung/dashboard", label: "Kembali ke dashboard" }} />
       <HistoryTable items={data.items} />
-      <Pagination page={data.page} pages={data.pages} basePath="/mahasiswa/riwayat" />
+      <Pagination page={data.page} pages={data.pages} basePath="/pengunjung/riwayat" />
     </div>
   );
 }

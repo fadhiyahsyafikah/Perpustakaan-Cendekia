@@ -15,7 +15,7 @@ export const metadata = { title: "Tulis Ulasan" };
 export default async function ReviewPage({ params }) {
   const user = await requireUser(BORROWER_ROLES);
   const { loanId } = await params;
-  if (!/^\d+$/.test(loanId)) redirect("/mahasiswa/riwayat");
+  if (!/^\d+$/.test(loanId)) redirect("/pengunjung/riwayat");
   const { rows } = await query(
     `SELECT l.id, l.status, b.id AS book_id, b.title, b.author, b.cover_url,
             EXISTS (SELECT 1 FROM reviews r WHERE r.loan_id = l.id) AS reviewed
@@ -23,22 +23,22 @@ export default async function ReviewPage({ params }) {
     [Number(loanId), user.id]
   );
   const l = rows[0];
-  if (!l) redirect("/mahasiswa/riwayat");
+  if (!l) redirect("/pengunjung/riwayat");
   if (l.status !== "Selesai" || l.reviewed) {
     return (
       <div className="grid gap-5">
-        <PageHeader title="Tulis Ulasan" back={{ href: "/mahasiswa/riwayat", label: "Kembali ke riwayat" }} />
+        <PageHeader title="Tulis Ulasan" back={{ href: "/pengunjung/riwayat", label: "Kembali ke riwayat" }} />
         <EmptyState
           title={l.reviewed ? "Anda sudah mengulas buku ini" : "Ulasan belum dapat ditulis"}
           text={l.reviewed ? "Satu transaksi hanya dapat diulas satu kali." : "Ulasan hanya dapat ditulis setelah buku dikembalikan."}
-          action={<Link href="/mahasiswa/riwayat" className={btn("primary")}>Kembali ke riwayat</Link>}
+          action={<Link href="/pengunjung/riwayat" className={btn("primary")}>Kembali ke riwayat</Link>}
         />
       </div>
     );
   }
   return (
     <div className="grid max-w-[720px] gap-5">
-      <PageHeader title="Tulis Ulasan" back={{ href: "/mahasiswa/riwayat", label: "Kembali ke riwayat" }} />
+      <PageHeader title="Tulis Ulasan" back={{ href: "/pengunjung/riwayat", label: "Kembali ke riwayat" }} />
       <div className="rounded-lg border border-n-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="mb-5 flex items-start gap-3.5 [&>div:first-child]:w-14 [&>div:first-child]:flex-none">
           <BookCover src={l.cover_url} title={l.title} />

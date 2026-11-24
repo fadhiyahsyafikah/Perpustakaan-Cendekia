@@ -30,7 +30,7 @@ export default function HistoryTable({ items }) {
                 {h.fine_amount ? <><b>{rupiah(h.fine_amount)}</b> <StatusBadge status={h.fine_status} /></> : <span className="text-n-700">-</span>}
               </td>
               <td  data-label="Ulasan" className={T.tdActions}>
-                {h.status !== "Selesai" ? <span className="text-n-700">-</span> : h.review_id ? <Stars value={h.rating} size={16} /> : <Link href={`/mahasiswa/ulasan/${h.id}`} className={btn("yellow", "sm")}>Tulis ulasan</Link>}
+                {h.status !== "Selesai" ? <span className="text-n-700">-</span> : h.review_id ? <Stars value={h.rating} size={16} /> : <Link href={`/pengunjung/ulasan/${h.id}`} className={btn("yellow", "sm")}>Tulis ulasan</Link>}
               </td>
             </tr>
           ))}

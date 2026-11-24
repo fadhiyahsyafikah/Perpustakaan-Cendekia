@@ -167,7 +167,7 @@ export default async function MahasiswaDashboard() {
       <section aria-labelledby="h-riwayat">
         <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3 [&_h2]:m-0">
           <h2 id="h-riwayat">Riwayat terbaru</h2>
-          {hist.total > 5 && <Link href="/mahasiswa/riwayat" className="font-semibold underline underline-offset-[3px]">Lihat semua riwayat</Link>}
+          {hist.total > 5 && <Link href="/pengunjung/riwayat" className="font-semibold underline underline-offset-[3px]">Lihat semua riwayat</Link>}
         </div>
         <HistoryTable items={hist.items} />
       </section>

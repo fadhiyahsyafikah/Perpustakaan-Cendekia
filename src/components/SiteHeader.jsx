@@ -13,7 +13,7 @@ const LINKS = [
   { href: "/katalog", label: "Katalog Buku" },
   { href: "/pengumuman", label: "Pengumuman" },
 ];
-const HOME = { admin: "/admin/dashboard", pegawai: "/pegawai/dashboard", mahasiswa: "/mahasiswa/dashboard", umum: "/mahasiswa/dashboard" };
+const HOME = { admin: "/admin/dashboard", pegawai: "/pegawai/dashboard", mahasiswa: "/pengunjung/dashboard", umum: "/pengunjung/dashboard" };
 const ROLE = { admin: "Admin", pegawai: "Pegawai", mahasiswa: "Mahasiswa", umum: "Pengunjung Umum" };
 
 export default function SiteHeader({ user }) {

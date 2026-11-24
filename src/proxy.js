@@ -3,7 +3,7 @@ import { jwtVerify } from "jose";
 
 // Lapis pertama otorisasi (per rute). Lapis kedua ada di tiap halaman, Server Action, dan Route Handler.
 const RULES = [
-    { prefix: "/mahasiswa", roles: ["mahasiswa", "umum"] }, // dashboard anggota (Mahasiswa dan Pengunjung Umum)
+    { prefix: "/pengunjung", roles: ["mahasiswa", "umum"] }, // dashboard anggota (Mahasiswa dan Pengunjung Umum)
     { prefix: "/pegawai", roles: ["pegawai"] },
     { prefix: "/kelola", roles: ["pegawai", "admin"] },
     { prefix: "/admin", roles: ["admin"] },
@@ -40,5 +40,5 @@ export async function proxy(req) {
     }
 
 export const config = {
-    matcher: ["/mahasiswa/:path*", "/pegawai/:path*", "/kelola/:path*", "/admin/:path*", "/api/loans/:path*", "/api/upload/:path*", "/api/reports/:path*"],
+    matcher: ["/pengunjung/:path*", "/pegawai/:path*", "/kelola/:path*", "/admin/:path*", "/api/loans/:path*", "/api/upload/:path*", "/api/reports/:path*"],
 };

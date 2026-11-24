@@ -38,8 +38,8 @@ export const ANNOUNCEMENT_STATUSES = ["Draft", "Published"];
 export const HOME_BY_ROLE = {
     admin: "/admin/dashboard",
     pegawai: "/pegawai/dashboard",
-    mahasiswa: "/mahasiswa/dashboard",
-    umum: "/mahasiswa/dashboard",
+    mahasiswa: "/pengunjung/dashboard",
+    umum: "/pengunjung/dashboard",
 };
 
 // Domain email kampus (dapat dikonfigurasi lewat .env)

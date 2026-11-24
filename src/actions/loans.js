@@ -19,7 +19,7 @@ export async function requestLoan(prev, formData) {
   try {
     const r = await svc.requestLoan(auth.user, id.data);
     done();
-    return ok(`Pengajuan terkirim untuk buku ${r.title}. Silakan datang ke meja sirkulasi untuk konfirmasi.`, { redirectTo: "/mahasiswa/dashboard" });
+    return ok(`Pengajuan terkirim untuk buku ${r.title}. Silakan datang ke meja sirkulasi untuk konfirmasi.`, { redirectTo: "/pengunjung/dashboard" });
   } catch (e) {
     return fail(dbMessage(e));
   }
