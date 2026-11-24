@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="src/icon.svg" alt="Logo Perpustakaan Cendekia" width="120" height="120" />
+  <img src="src/app/icon.svg" alt="Logo Perpustakaan Cendekia" width="120" height="120" />
 
   <h1>Perpustakaan Cendekia</h1>
   <p><strong>Ilmu Terhimpun, Cendekia Berkembang.</strong></p>
