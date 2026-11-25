@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="src/app/icon.svg" alt="Logo Perpustakaan Cendekia" width="120" height="120" />
+  <img src="src/app/icon.svg" alt="Logo Perpustakaan Cendekia" width="240" height="240" />
 
   <h1>Perpustakaan Cendekia</h1>
   <p><strong>Ilmu Terhimpun, Cendekia Berkembang.</strong></p>
@@ -39,7 +39,7 @@
 
 ## Tentang Perpustakaan Cendekia
 
-**Perpustakaan Cendekia** adalah aplikasi manajemen perpustakaan *full-stack* yang dirancang untuk mempermudah interaksi antara peminjam (mahasiswa maupun pengunjung umum) dengan petugas meja sirkulasi. Pengguna dapat menelusuri koleksi buku, mengajukan peminjaman secara daring sebelum mengambil buku fisik di perpustakaan, masuk ke antrean reservasi ketika stok habis, serta memantau tenggat pengembalian dan rincian denda dalam satu dasbor terpadu.
+**Perpustakaan Cendekia** adalah website manajemen perpustakaan *full-stack* yang dirancang untuk mempermudah interaksi antara peminjam (mahasiswa maupun pengunjung umum) dengan petugas meja sirkulasi. Pengguna dapat menelusuri koleksi buku, mengajukan peminjaman secara daring sebelum mengambil buku fisik di perpustakaan, masuk ke antrean reservasi ketika stok habis, serta memantau tenggat pengembalian dan rincian denda dalam satu dasbor terpadu.
 
 Sistem ini dibangun menggunakan **Next.js App Router** dengan **Server Components** dan **Server Actions**, terhubung langsung ke basis data relasional **PostgreSQL** untuk menjaga konsistensi stok eksemplar, riwayat transaksi, dan status antrean secara *real-time*.
 
@@ -282,4 +282,5 @@ Pengujian fungsional dilakukan secara *end-to-end* pada seluruh skenario utama s
 
 * **Kontak Layanan Perpustakaan:** `perpustakaan@cendekia.ac.id`
 * **Jam Operasional:** Senin–Jumat (`08.00 – 17.00 WITA`) & Sabtu (`09.00 – 14.00 WITA`)
-* **Konteks Pengembangan:** Proyek Akhir Praktikum Pengembangan Aplikasi Web — Program Studi Sistem Informasi, Fakultas Matematika dan Ilmu Pengetahuan Alam, Universitas Hasanuddin (2026).
+* **Pengembangan:** Fadhiyah Syafikah Firman (H071251019)
+* **Konteks Pengembangan:** Proyek Akhir Praktikum Pengembangan Web — Program Studi Sistem Informasi, Fakultas Matematika dan Ilmu Pengetahuan Alam, Universitas Hasanuddin, 2026.

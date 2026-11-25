@@ -45,6 +45,7 @@ export default function DashShell({ user, menu, counts = {}, unread = 0, childre
   }, [open]);
 
   const active = (href) => pathname === href || (href !== "/katalog" && pathname.startsWith(href + "/"));
+  const canPreview = user.role === "mahasiswa" || user.role === "umum";
 
   const sidebar = (
     <>
@@ -76,9 +77,11 @@ export default function DashShell({ user, menu, counts = {}, unread = 0, childre
         })}
       </nav>
       <div className="grid gap-0.5 border-t border-white/15 pt-2">
-        <Link href="/" className={SIDE_ITEM}>
-          <Globe size={17} className="shrink-0" aria-hidden="true" /> Pratinjau
-        </Link>
+        {canPreview && (
+          <Link href="/" className={SIDE_ITEM}>
+            <Globe size={17} className="shrink-0" aria-hidden="true" /> Pratinjau
+          </Link>
+        )}
         <form action={logout}>
           <button type="submit" className={SIDE_ITEM}>
             <LogOut size={17} className="shrink-0" aria-hidden="true" /> Keluar
