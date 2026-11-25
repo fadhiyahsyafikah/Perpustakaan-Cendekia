@@ -42,18 +42,29 @@ export function Badge({ tone = "info", icon: Icon, children }) {
 }
 
 // ---------- Bintang rating ----------
-export function Stars({ value, count, size = 16, showEmpty = true }) {
-  if (value === null || value === undefined) {
-    return showEmpty ? <span className="text-[0.8125rem] text-n-700">Belum ada ulasan</span> : null;
-  }
-  const r = Math.round(Number(value));
+export function Stars({ value, count, size = 16 }) {
+  const hasRating = value !== null && value !== undefined && Number(value) > 0;
+  const score = hasRating ? Math.floor(Number(value)) : 0;
+
   return (
-    <span className="inline-flex items-center gap-0.5" role="img" aria-label={`Rating ${value} dari 5${count ? `, ${count} ulasan` : ""}`}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Star key={n} size={size} className={n <= r ? "fill-yellow-500 stroke-navy-800 stroke-[1.5]" : "fill-transparent stroke-n-300"} aria-hidden="true" />
-      ))}
-      <b className="ml-1 text-sm text-n-900">{Number(value).toFixed(1)}</b>
-      {count !== undefined && <small className="ml-0.5 text-n-700">({count})</small>}
+    <span className="inline-flex items-center gap-1.5" aria-label={hasRating ? `Rating ${score} dari 5` : "Belum ada rating"}>
+      <span className="inline-flex items-center gap-0.5" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star
+            key={i}
+            size={size}
+            className={i <= score ? "fill-yellow-500 text-navy-800" : "fill-transparent text-n-300"}
+          />
+        ))}
+      </span>
+      {hasRating ? (
+        <span className="text-sm font-semibold text-n-900">
+          {score}
+          {count !== undefined && <span className="ml-1 font-normal text-n-700">({count} ulasan)</span>}
+        </span>
+      ) : (
+        count !== undefined && <span className="text-sm text-n-700">Belum ada ulasan</span>
+      )}
     </span>
   );
 }

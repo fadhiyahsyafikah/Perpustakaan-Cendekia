@@ -1,7 +1,7 @@
 import { query } from "@/lib/db";
 import { CONFIG } from "@/lib/config";
 
-// Whitelist pengurutan: nilai dari pengguna hanya memilih kunci, bukan disisipkan ke SQL
+// Whitelist pengurutan
 export const SORT_OPTIONS = [
     { value: "judul", label: "Judul (A sampai Z)", sql: "b.title ASC" },
     { value: "terbaru", label: "Tahun terbit (terbaru)", sql: "b.publish_year DESC, b.title ASC" },
@@ -121,4 +121,41 @@ export async function listCategories() {
         GROUP BY c.id ORDER BY c.name`
     );
     return rows;
+}
+
+// Daftar kategori dengan pagination (maksimal 10 per halaman)
+export async function paginatedCategories({ halaman = 1, pageSize = 10 } = {}) {
+    const total = Number((await query("SELECT COUNT(*) AS n FROM categories")).rows[0].n) || 0;
+    const pages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(Math.max(1, parseInt(halaman, 10) || 1), pages);
+
+    const { rows } = await query(
+        `SELECT c.id, c.name, c.code, c.description,
+                COUNT(b.id) FILTER (WHERE b.deleted_at IS NULL) AS book_count,
+                COUNT(b.id) AS all_book_count
+        FROM categories c LEFT JOIN books b ON b.category_id = c.id
+        GROUP BY c.id ORDER BY c.name
+        LIMIT $1 OFFSET $2`,
+        [pageSize, (page - 1) * pageSize]
+    );
+    return { items: rows, total, page, pages, pageSize };
+}
+
+// Ulasan buku dengan pagination (maksimal 3 per halaman)
+export async function paginatedReviews(bookId, { halaman = 1, pageSize = 3 } = {}) {
+    const total = Number(
+        (await query("SELECT COUNT(*) AS n FROM reviews WHERE book_id = $1", [bookId])).rows[0].n
+    ) || 0;
+    const pages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(Math.max(1, parseInt(halaman, 10) || 1), pages);
+
+    const { rows } = await query(
+        `SELECT r.id, r.rating, r.comment, r.created_at, u.full_name
+        FROM reviews r JOIN users u ON u.id = r.user_id
+        WHERE r.book_id = $1
+        ORDER BY r.created_at DESC
+        LIMIT $2 OFFSET $3`,
+        [bookId, pageSize, (page - 1) * pageSize]
+    );
+    return { items: rows, total, page, pages, pageSize };
 }

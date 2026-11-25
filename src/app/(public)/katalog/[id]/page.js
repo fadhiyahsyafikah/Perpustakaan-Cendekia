@@ -4,8 +4,8 @@ import { Lock, LogIn, Info, BookCheck, CalendarClock, Hourglass } from "lucide-r
 import BookCover from "@/components/BookCover";
 import { ActionForm, SubmitButton } from "@/components/form";
 import ConfirmForm from "@/components/ConfirmForm";
-import { Stars, EmptyState } from "@/components/ui";
-import { getBookDetail, getReviews } from "@/lib/data/books";
+import { Stars, EmptyState, Pagination } from "@/components/ui";
+import { getBookDetail, paginatedReviews } from "@/lib/data/books";
 import { getCurrentUser } from "@/lib/session";
 import { getLoanButtonState } from "@/lib/services/loans";
 import { sweepExpiredReservations } from "@/lib/services/reservations";
@@ -67,13 +67,16 @@ function LoanBox({ state, book }) {
   }
 }
 
-export default async function BookDetailPage({ params }) {
-  const { id } = await params;
+export default async function BookDetailPage({ params, searchParams }) {
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
   if (!/^\d+$/.test(id)) notFound();
   await sweepExpiredReservations().catch(() => {});
   const book = await getBookDetail(Number(id));
   if (!book) notFound();
-  const [reviews, user] = await Promise.all([getReviews(book.id), getCurrentUser()]);
+  const [{ items: reviews, page, pages }, user] = await Promise.all([
+    paginatedReviews(book.id, { halaman: sp?.halaman ?? sp?.page, pageSize: 3 }),
+    getCurrentUser(),
+  ]);
   const state = await getLoanButtonState(user, book);
   const out = book.available_stock <= 0;
 
@@ -106,7 +109,7 @@ export default async function BookDetailPage({ params }) {
           </table>
 
           <div className="max-md:sticky max-md:bottom-0 max-md:z-20 max-md:-mx-4 max-md:border-t max-md:border-n-200 max-md:bg-white max-md:px-4 max-md:pt-3 max-md:pb-[calc(12px+env(safe-area-inset-bottom))] max-md:shadow-[0_-4px_12px_rgba(10,17,114,0.08)]">
-            <div className="grid gap-2.5 rounded-lg bg-navy-50 p-[18px]"><LoanBox state={state} book={book} /></div>
+            <div className="grid gap-2.5"><LoanBox state={state} book={book} /></div>
           </div>
         </div>
       </div>
@@ -114,21 +117,24 @@ export default async function BookDetailPage({ params }) {
       <section className="mt-10" id="ulasan" aria-labelledby="h-ulasan">
         <h2 id="h-ulasan">Ulasan pembaca</h2>
         {reviews.length ? (
-          <div>
-            {reviews.map((r) => (
-              <article key={r.id} className="flex gap-3.5 border-b border-n-200 py-4 [&_p]:mt-1.5 [&_p]:mb-0">
-                <div className="grid size-11 flex-none place-items-center rounded-full bg-navy-100 font-heading font-bold text-navy-800" aria-hidden="true">{inisial(r.full_name)}</div>
-                <div>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 [&_time]:text-[0.8125rem] [&_time]:text-n-500">
-                    <b>{r.full_name}</b>
-                    <Stars value={r.rating} size={14} />
-                    <time>{tanggalSingkat(r.created_at)}</time>
+          <>
+            <div>
+              {reviews.map((r) => (
+                <article key={r.id} className="flex gap-3.5 border-b border-n-200 py-4 [&_p]:mt-1.5 [&_p]:mb-0">
+                  <div className="grid size-11 flex-none place-items-center rounded-full bg-navy-100 font-heading font-bold text-navy-800" aria-hidden="true">{inisial(r.full_name)}</div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 [&_time]:text-[0.8125rem] [&_time]:text-n-500">
+                      <b>{r.full_name}</b>
+                      <Stars value={r.rating} size={14} />
+                      <time>{tanggalSingkat(r.created_at)}</time>
+                    </div>
+                    {r.comment && <p>{r.comment}</p>}
                   </div>
-                  {r.comment && <p>{r.comment}</p>}
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+            <Pagination page={page} pages={pages} basePath={`/katalog/${book.id}`} />
+          </>
         ) : (
           <EmptyState title="Belum ada ulasan" text="Ulasan akan tampil setelah pembaca selesai meminjam dan menilai buku ini." />
         )}
