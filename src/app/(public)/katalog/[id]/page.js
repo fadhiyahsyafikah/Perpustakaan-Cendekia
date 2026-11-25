@@ -36,7 +36,7 @@ function LoanBox({ state, book }) {
         <ActionForm action={requestLoan} inlineError>
           <input type="hidden" name="book_id" value={book.id} />
           <SubmitButton variant="green" size="lg" block icon={<BookCheck size={18} aria-hidden="true" />}>Ajukan Pinjam</SubmitButton>
-          <p className="mt-2.5 mb-0 text-[0.9375rem] text-n-700 [&_svg]:mr-1.5 [&_svg]:inline [&_svg]:align-[-3px]"><Info size={18} aria-hidden="true" /> {state.hasReadyReservation ? "Reservasi Anda siap diambil. " : ""}Setelah mengajukan, datang ke meja sirkulasi untuk konfirmasi.</p>
+          <p className="mt-2.5 mb-0 text-[0.9375rem] text-n-700 [&_svg]:mr-1.5 [&_svg]:inline [&_svg]:align-[-3px]"><Info size={18} aria-hidden="true" /> {state.hasReadyReservation ? "Reservasi Anda siap diambil. " : ""}Setelah mengajukan, datang ke Meja Layanan untuk konfirmasi.</p>
         </ActionForm>
       );
     case "reserved":

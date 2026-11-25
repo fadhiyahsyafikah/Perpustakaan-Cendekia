@@ -1,6 +1,3 @@
-// Kumpulan kelas Tailwind untuk elemen yang dipakai berulang dan punya varian.
-// Elemen lain memakai utility Tailwind langsung di JSX. Tema (warna, font, radius) ada di globals.css (@theme).
-
 export const cx = (...parts) => parts.filter(Boolean).join(" ");
 
 // Tombol
@@ -35,16 +32,16 @@ export const stock = (available) =>
 // Kontrol formulir
 const CTL_BASE =
     "min-h-12 w-full rounded-md border-[1.5px] border-n-300 bg-white px-3.5 py-2.5 font-[inherit] text-n-900 transition placeholder:text-n-500 focus:border-navy-800 focus:ring-4 focus:ring-yellow-500/55 focus:outline-none disabled:cursor-not-allowed disabled:bg-n-100 aria-invalid:border-red-600!";
-    export const ctl = {
+export const ctl = {
     input: CTL_BASE,
-    select: CTL_BASE,
+    select: cx(CTL_BASE, "pr-10"),
     textarea: cx(CTL_BASE, "min-h-[120px] resize-y"),
 };
 
 // Tabel (menjadi kartu pada layar < 768px)
-    const TD =
+const TD =
     "border-t border-n-200 px-4 py-3 align-middle text-[0.9375rem] max-md:flex max-md:w-full max-md:items-center max-md:border-0 max-md:border-b max-md:border-dashed max-md:px-0 max-md:py-2.5 max-md:last:border-b-0 max-md:before:max-w-[42%] max-md:before:flex-none max-md:before:text-left max-md:before:text-xs max-md:before:font-semibold max-md:before:tracking-[0.03em] max-md:before:text-n-700 max-md:before:uppercase max-md:before:content-[attr(data-label)]";
-    export const T = {
+export const T = {
     table: "w-full border-collapse max-md:block",
     thead: "max-md:sr-only",
     tbody: "max-md:block",

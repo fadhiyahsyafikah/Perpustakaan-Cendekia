@@ -168,7 +168,7 @@ export function FineTable({ rows, paid = false }) {
                     triggerIcon={<Check size={18} aria-hidden="true" />}
                     triggerVariant="green"
                     title="Catat pelunasan denda?"
-                    description={`Pastikan uang tunai ${rupiah(f.amount)} dari ${f.full_name} sudah diterima di meja sirkulasi.`}
+                    description={`Pastikan uang tunai ${rupiah(f.amount)} dari ${f.full_name} sudah diterima di Meja Layanan.`}
                     confirmLabel="Ya, sudah dibayar"
                     confirmVariant="green"
                   />

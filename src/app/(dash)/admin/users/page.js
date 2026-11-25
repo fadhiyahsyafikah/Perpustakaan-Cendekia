@@ -19,7 +19,7 @@ export default async function UsersPage({ searchParams }) {
   const data = await listUsers({ role, q, halaman: str(sp.halaman) });
   return (
     <div className="grid gap-5">
-      <PageHeader title="Manajemen Pengguna" subtitle={`${data.total} akun. Akun yang pernah bertransaksi hanya dapat dinonaktifkan, tidak dihapus.`} actions={<Link href="/admin/users/baru" className={btn("primary")}><Plus size={18} aria-hidden="true" /> Tambah pengguna</Link>} />
+      <PageHeader title="Manajemen Pengguna" subtitle={`Jumlah akun: ${data.total} akun`} actions={<Link href="/admin/users/baru" className={btn("primary")}><Plus size={18} aria-hidden="true" /> Tambah pengguna</Link>} />
       <form action="/admin/users" method="get" role="search" className="mb-4 flex flex-wrap items-end gap-2.5 [&>div]:flex-[1_1_200px] [&>button]:flex-none [&>a]:flex-none">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="q" className="text-[0.9375rem] font-semibold text-n-900">Cari nama, email, atau NIM/NIP/ID</label>

@@ -19,9 +19,9 @@ export async function getBorrowerStatus(userId, db = { query }) {
   const blocked = s.fine_count > 0 || s.overdue_count > 0;
   let reason = "";
   if (s.fine_count > 0) {
-    reason = `Anda belum dapat meminjam karena masih memiliki denda ${rupiah(s.fine_total)}. Lunasi di meja sirkulasi.`;
+    reason = `Anda belum dapat meminjam karena masih memiliki denda ${rupiah(s.fine_total)}. Lunasi di Meja Layanan.`;
   } else if (s.overdue_count > 0) {
-    reason = "Anda belum dapat meminjam karena ada buku yang sudah lewat jatuh tempo. Kembalikan buku tersebut di meja sirkulasi.";
+    reason = "Anda belum dapat meminjam karena ada buku yang sudah lewat jatuh tempo. Kembalikan buku tersebut di Meja Layanan.";
   }
   return { ...s, blocked, reason };
 }

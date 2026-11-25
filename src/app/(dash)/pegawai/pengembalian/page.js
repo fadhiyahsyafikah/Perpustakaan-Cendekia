@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ui";
 import { CirculationTable, SearchBar } from "@/components/staff";
 import { str } from "@/lib/format";
 
-export const metadata = { title: "Meja Sirkulasi" };
+export const metadata = { title: "Meja Layanan" };
 
 export default async function PengembalianPage({ searchParams }) {
   await requireUser(["pegawai"]);
@@ -12,7 +12,7 @@ export default async function PengembalianPage({ searchParams }) {
   const rows = await circulationLoans(q);
   return (
     <div className="grid gap-5">
-      <PageHeader title="Meja Sirkulasi" subtitle="Terima pengembalian buku fisik. Stok bertambah otomatis dan denda dihitung bila terlambat." />
+      <PageHeader title="Meja Layanan" subtitle="Terima pengembalian buku fisik." />
       <SearchBar action="/pegawai/pengembalian" q={q} placeholder="NIM/ID, nama, atau judul buku" />
       <CirculationTable rows={rows} />
     </div>

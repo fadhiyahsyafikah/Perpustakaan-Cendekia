@@ -143,7 +143,7 @@ export async function returnLoan(staff, loanId) {
         `INSERT INTO fines (loan_id, user_id, late_days, fine_per_day, amount, status) VALUES ($1, $2, $3, $4, $5, 'Tertunggak')`,
         [l.id, l.user_id, r.late_days, b.fine_per_day, amount]
       );
-      await notify(c, l.user_id, "Denda", `Denda baru tercatat untuk buku ${b.title} sebesar ${rupiah(amount)}. Mohon lunasi di meja sirkulasi.`, l.id);
+      await notify(c, l.user_id, "Denda", `Denda baru tercatat untuk buku ${b.title} sebesar ${rupiah(amount)}. Mohon lunasi di Meja Layanan.`, l.id);
     }
     // tutup pengajuan perpanjangan yang masih menggantung
     await c.query(
@@ -220,7 +220,7 @@ export async function decideExtension(staff, extId, approve, note) {
   });
 }
 
-// DEN-03: pelunasan denda (tunai di meja sirkulasi)
+// DEN-03: pelunasan denda (tunai di Meja Layanan)
 export async function payFine(staff, fineId) {
   return withTransaction(async (c) => {
     const r = await c.query(

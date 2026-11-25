@@ -94,7 +94,7 @@ export async function pendingLoanQueue(q = "") {
   return rows;
 }
 
-// Meja sirkulasi: transaksi aktif beserta perkiraan denda bila dikembalikan hari ini
+// Meja Layanan: transaksi aktif beserta perkiraan denda bila dikembalikan hari ini
 export async function circulationLoans(q = "") {
   const params = [];
   let extra = "";

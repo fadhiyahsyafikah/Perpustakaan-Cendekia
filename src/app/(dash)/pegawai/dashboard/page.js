@@ -14,7 +14,7 @@ export default async function PegawaiDashboard() {
   const [c, queue] = await Promise.all([staffCounts(), pendingLoanQueue()]);
   return (
     <div className="grid gap-5">
-      <PageHeader title="Dashboard Pegawai" subtitle="Ringkasan pekerjaan sirkulasi hari ini." />
+      <PageHeader title="Dashboard Pegawai"/>
       <div className="mb-5 grid grid-cols-1 gap-3.5 min-[480px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
         <StatCard icon={ClipboardCheck} label="Antrean peminjaman" value={c.pending} tone="yellow" href="/pegawai/peminjaman" />
         <StatCard icon={RefreshCw} label="Antrean perpanjangan" value={c.extensions} tone="yellow" href="/pegawai/perpanjangan" />
@@ -29,7 +29,7 @@ export default async function PegawaiDashboard() {
       </section>
 
       <section className="rounded-lg border border-n-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="h-meja">
-        <h2 id="h-meja">Meja sirkulasi</h2>
+        <h2 id="h-meja">Meja Layanan</h2>
         <p className="text-n-700">Cari transaksi aktif untuk memproses pengembalian. Denda dihitung otomatis.</p>
         <form action="/pegawai/pengembalian" method="get" role="search" className="mb-4 flex flex-wrap items-end gap-2.5 [&>div]:flex-[1_1_200px] [&>button]:flex-none [&>a]:flex-none">
           <div className="flex flex-col gap-1.5">

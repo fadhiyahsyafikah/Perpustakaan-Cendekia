@@ -17,7 +17,7 @@ export default function Footer() {
         </div>
         <div>
           <h2>Kontak</h2>
-          <p><MapPin size={16} aria-hidden="true" /> Meja sirkulasi, Gedung Perpustakaan Cendekia, Jl. Raya Pendidikan</p>
+          <p><MapPin size={16} aria-hidden="true" /> Meja Layanan, Gedung Perpustakaan Cendekia, Jl. Raya Pendidikan</p>
           <p><Mail size={16} aria-hidden="true" /> layanan.perpus@cendekia.ac.id</p>
         </div>
         <div>

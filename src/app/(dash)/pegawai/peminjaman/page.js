@@ -12,7 +12,7 @@ export default async function PeminjamanPage({ searchParams }) {
   const rows = await pendingLoanQueue(q);
   return (
     <div className="grid gap-5">
-      <PageHeader title="Antrean Peminjaman" subtitle="Permohonan berstatus Menunggu Konfirmasi, diurutkan dari yang terlama. Periksa saat mahasiswa hadir di meja sirkulasi." />
+      <PageHeader title="Antrean Peminjaman" subtitle="Periksa saat mahasiswa hadir di Meja Layanan." />
       <SearchBar action="/pegawai/peminjaman" q={q} placeholder="NIM/ID, nama, atau judul buku" />
       <PendingTable rows={rows} />
     </div>

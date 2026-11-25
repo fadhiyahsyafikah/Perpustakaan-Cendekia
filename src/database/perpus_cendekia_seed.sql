@@ -356,16 +356,16 @@ INSERT INTO announcements (title, content, category, release_date, status, autho
 SELECT v.title, v.content, v.category, wita_today() + v.off, v.status, (SELECT id FROM users WHERE email = v.author)
 FROM (VALUES
   ('Jam Layanan Perpustakaan Selama Masa Ujian',
-   E'Selama masa ujian, perpustakaan buka lebih lama agar mahasiswa dapat belajar dengan nyaman.\n\nJam layanan: Senin sampai Kamis pukul 08.00 sampai 20.00 WITA, Jumat pukul 08.00 sampai 17.00 WITA, dan Sabtu pukul 09.00 sampai 14.00 WITA. Perpustakaan tutup pada hari Minggu dan hari libur nasional.\n\nMeja sirkulasi berhenti menerima pengembalian 30 menit sebelum perpustakaan tutup.',
+   E'Selama masa ujian, perpustakaan buka lebih lama agar mahasiswa dapat belajar dengan nyaman.\n\nJam layanan: Senin sampai Kamis pukul 08.00 sampai 20.00 WITA, Jumat pukul 08.00 sampai 17.00 WITA, dan Sabtu pukul 09.00 sampai 14.00 WITA. Perpustakaan tutup pada hari Minggu dan hari libur nasional.\n\nMeja Layanan berhenti menerima pengembalian 30 menit sebelum perpustakaan tutup.',
    'Operasional', -2, 'Published', 'pegawai1@cendekia.ac.id'),
   ('Tambahan Koleksi: Sastra, Sains, dan Teknologi',
-   E'Perpustakaan Cendekia menambah koleksi baru, antara lain karya sastra Indonesia, buku sains populer, dan buku pemrograman terkini.\n\nCari judul-judul terbaru melalui halaman Katalog, lalu ajukan peminjaman langsung dari halaman detail buku. Silakan datang ke meja sirkulasi untuk mengambil buku setelah pengajuan Anda disetujui.',
+   E'Perpustakaan Cendekia menambah koleksi baru, antara lain karya sastra Indonesia, buku sains populer, dan buku pemrograman terkini.\n\nCari judul-judul terbaru melalui halaman Katalog, lalu ajukan peminjaman langsung dari halaman detail buku. Silakan datang ke Meja Layanan untuk mengambil buku setelah pengajuan Anda disetujui.',
    'Layanan', -5, 'Published', 'pegawai2@cendekia.ac.id'),
   ('Bedah Buku Laut Bercerita',
    E'Ikuti diskusi bedah buku Laut Bercerita bersama dosen dan pegiat literasi kampus. Acara terbuka untuk seluruh mahasiswa dan gratis.\n\nTempat: ruang baca lantai 2. Peserta yang hadir mendapat kesempatan meminjam buku tanpa antre pada hari acara.',
    'Acara', -1, 'Published', 'pegawai1@cendekia.ac.id'),
   ('Aturan Denda dan Cara Pembayaran',
-   E'Keterlambatan pengembalian dikenakan denda per hari sesuai tarif pada halaman detail buku. Pengembalian pada hari jatuh tempo tidak dikenakan denda.\n\nDenda dibayar tunai di meja sirkulasi. Selama masih ada denda yang belum lunas, pengajuan pinjaman baru tidak dapat dilakukan.',
+   E'Keterlambatan pengembalian dikenakan denda per hari sesuai tarif pada halaman detail buku. Pengembalian pada hari jatuh tempo tidak dikenakan denda.\n\nDenda dibayar tunai di Meja Layanan. Selama masih ada denda yang belum lunas, pengajuan pinjaman baru tidak dapat dilakukan.',
    'Layanan', -10, 'Published', 'pegawai2@cendekia.ac.id'),
   ('Peresmian Ruang Baca Digital',
    E'Ruang baca digital akan diresmikan pekan depan. Informasi lengkap menyusul.',
@@ -384,9 +384,9 @@ FROM users u, books b WHERE u.email = 'andi.pratama@ui.ac.id' AND b.title = 'Dil
 INSERT INTO notifications (user_id, type, message, is_read, created_at)
 SELECT u.id, v.type, v.msg, v.is_read, now() + v.off * INTERVAL '1 hour'
 FROM (VALUES
-  ('siti.arahma@itb.ac.id','Persetujuan','Pengajuan pinjaman buku Clean Code disetujui. Silakan ambil bukunya di meja sirkulasi.',FALSE,-70),
+  ('siti.arahma@itb.ac.id','Persetujuan','Pengajuan pinjaman buku Clean Code disetujui. Silakan ambil bukunya di Meja Layanan.',FALSE,-70),
   ('ahmad.fauzan@unair.ac.id','Penolakan','Pengajuan pinjaman buku Pulang ditolak. Alasan: Buku sedang menjalani perawatan sampul.',TRUE,-470),
-  ('dewi.lestari@ipb.ac.id','Denda','Denda baru tercatat untuk buku Filosofi Teras sebesar Rp 3.000. Mohon lunasi di meja sirkulasi.',FALSE,-480)
+  ('dewi.lestari@ipb.ac.id','Denda','Denda baru tercatat untuk buku Filosofi Teras sebesar Rp 3.000. Mohon lunasi di Meja Layanan.',FALSE,-480)
 ) AS v(email, type, msg, is_read, off)
 JOIN users u ON u.email = v.email;
 

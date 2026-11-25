@@ -63,11 +63,11 @@ export default async function HomePage() {
   return (
     <>
       <section className="mx-auto w-full max-w-[1200px] px-4 pt-6 sm:px-6 lg:px-8">
-        <div className="rounded-2xl bg-navy-800 px-6 py-11 text-white shadow-md sm:px-12 sm:py-14 lg:px-20 lg:py-16">
-          <h1 className="max-w-[680px] text-3xl leading-[1.18] font-bold tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
+        <div className="rounded-2xl bg-navy-800 px-6 py-8 text-white shadow-md sm:px-10 sm:py-10 lg:px-12 lg:py-11">
+          <h1 className="max-w-[820px] text-3xl leading-[1.15] font-extrabold tracking-tight text-white sm:text-4xl lg:text-[3.25rem]">
             Temukan buku, <span className="text-yellow-500">tambah ilmu,</span> pinjam dengan mudah.
           </h1>
-          <p className="mt-3.5 mb-0 max-w-[560px] text-base leading-relaxed text-navy-100 sm:text-[1.0625rem]">
+          <p className="mt-4 mb-0 max-w-[700px] text-base leading-relaxed text-navy-100 sm:text-lg lg:text-[1.2rem]">
             Perpustakaan Cendekia membantu Anda mencari buku, mengajukan peminjaman, dan memantau jatuh tempo, semuanya dari satu tempat.
           </p>
 
@@ -81,24 +81,24 @@ export default async function HomePage() {
               Cari judul buku atau nama pengarang
             </label>
             <div className="flex flex-1 items-center gap-3 px-2 sm:px-0">
-              <Search size={20} className="shrink-0 text-n-500" aria-hidden="true" />
+              <Search size={22} className="shrink-0 text-n-500" aria-hidden="true" />
               <input
                 id="hero-search"
                 type="search"
                 name="q"
                 placeholder="Ketik judul buku atau nama pengarang..."
-                className="w-full border-0 bg-transparent py-2.5 text-[0.9375rem] text-n-900 placeholder:text-n-500 focus:outline-none focus-visible:shadow-none"
+                className="w-full border-0 bg-transparent py-2.5 text-base text-n-900 placeholder:text-n-500 focus:outline-none focus-visible:shadow-none sm:text-[1.0625rem]"
               />
             </div>
             <button
               type="submit"
-              className="cursor-pointer rounded-xl bg-yellow-500 px-7 py-3.5 text-[0.9375rem] font-semibold whitespace-nowrap text-navy-800 transition hover:bg-yellow-600 sm:rounded-full"
+              className="cursor-pointer rounded-xl bg-yellow-500 px-8 py-3.5 text-base font-bold whitespace-nowrap text-navy-900 transition hover:bg-yellow-400 sm:rounded-full"
             >
               Telusuri Katalog
             </button>
           </form>
 
-          <p className="mt-3.5 mb-0 text-sm text-navy-100/90">
+          <p className="mt-3.5 mb-0 text-sm text-navy-100/90 sm:text-base">
             Contoh: Laskar Pelangi, Tere Liye, Clean Code
           </p>
         </div>
@@ -107,7 +107,7 @@ export default async function HomePage() {
       <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8" aria-labelledby="h-top">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3 [&_h2]:m-0 [&_h2]:text-2xl [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-n-700">
           <div>
-            <h1 id="h-top">Buku Terpopuler</h1>
+            <h2 id="h-top">Buku Terpopuler</h2>
           </div>
           <Link
             href="/katalog"
@@ -142,7 +142,10 @@ export default async function HomePage() {
                   >
                     {isFirst && (
                       <div className="mb-2.5 flex justify-center">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-500 px-3 py-1 text-xs font-bold tracking-wide text-navy-900 shadow-sm">
+                        <span
+                          aria-label="Peringkat 1"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-yellow-500 px-3 py-1.5 text-xs font-bold tracking-wide text-navy-900 shadow-sm"
+                        >
                           <Crown size={14} aria-hidden="true" />
                         </span>
                       </div>
@@ -181,21 +184,35 @@ export default async function HomePage() {
       <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8" aria-labelledby="h-cara">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3 [&_h2]:m-0 [&_h2]:text-2xl [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-n-700">
           <div>
-            <h1 id="h-cara">Cara meminjam buku</h1>
+            <h2 id="h-cara">Cara meminjam buku</h2>
           </div>
         </div>
         <ol className="[counter-reset:step] grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <li className="relative rounded-lg bg-navy-50 p-5 before:mb-2.5 before:grid before:size-9 before:place-items-center before:rounded-full before:bg-yellow-500 before:font-heading before:font-bold before:text-navy-800 before:[counter-increment:step] before:content-[counter(step)] [&_h3]:mb-1 [&_h3]:text-[1.0625rem] [&_p]:m-0 [&_p]:text-[0.9375rem] [&_p]:text-n-700"><h3><Search size={18} aria-hidden="true" /> Cari buku</h3><p>Gunakan kolom pencarian atau jelajahi katalog berdasarkan kategori.</p></li>
-          <li className="relative rounded-lg bg-navy-50 p-5 before:mb-2.5 before:grid before:size-9 before:place-items-center before:rounded-full before:bg-yellow-500 before:font-heading before:font-bold before:text-navy-800 before:[counter-increment:step] before:content-[counter(step)] [&_h3]:mb-1 [&_h3]:text-[1.0625rem] [&_p]:m-0 [&_p]:text-[0.9375rem] [&_p]:text-n-700"><h3><ClipboardList size={18} aria-hidden="true" /> Ajukan pinjam</h3><p>Masuk atau daftar akun, lalu tekan tombol &ldquo;Ajukan Pinjam&rdquo; pada halaman buku.</p></li>
-          <li className="relative rounded-lg bg-navy-50 p-5 before:mb-2.5 before:grid before:size-9 before:place-items-center before:rounded-full before:bg-yellow-500 before:font-heading before:font-bold before:text-navy-800 before:[counter-increment:step] before:content-[counter(step)] [&_h3]:mb-1 [&_h3]:text-[1.0625rem] [&_p]:m-0 [&_p]:text-[0.9375rem] [&_p]:text-n-700"><h3><Handshake size={18} aria-hidden="true" /> Datang ke meja sirkulasi</h3><p>Pegawai akan memeriksa dan menyetujui pengajuan Anda saat Anda hadir.</p></li>
-          <li className="relative rounded-lg bg-navy-50 p-5 before:mb-2.5 before:grid before:size-9 before:place-items-center before:rounded-full before:bg-yellow-500 before:font-heading before:font-bold before:text-navy-800 before:[counter-increment:step] before:content-[counter(step)] [&_h3]:mb-1 [&_h3]:text-[1.0625rem] [&_p]:m-0 [&_p]:text-[0.9375rem] [&_p]:text-n-700"><h3><Undo2 size={18} aria-hidden="true" /> Kembalikan tepat waktu</h3><p>Kembalikan sebelum jatuh tempo agar terhindar dari denda.</p></li>
+          <li className="relative rounded-lg bg-navy-50 p-5 before:mb-2.5 before:grid before:size-9 before:place-items-center before:rounded-full before:bg-yellow-500 before:font-heading before:font-bold before:text-navy-800 before:[counter-increment:step] before:content-[counter(step)] [&_h3]:mb-1 [&_h3]:flex [&_h3]:items-center [&_h3]:gap-2 [&_h3]:text-[1.0625rem] [&_p]:m-0 [&_p]:text-[0.9375rem] [&_p]:text-n-700">
+            <h3><Search size={18} aria-hidden="true" /> Cari buku</h3>
+            <p>Gunakan kolom pencarian atau jelajahi katalog berdasarkan kategori.</p>
+          </li>
+          <li className="relative rounded-lg bg-navy-50 p-5 before:mb-2.5 before:grid before:size-9 before:place-items-center before:rounded-full before:bg-yellow-500 before:font-heading before:font-bold before:text-navy-800 before:[counter-increment:step] before:content-[counter(step)] [&_h3]:mb-1 [&_h3]:flex [&_h3]:items-center [&_h3]:gap-2 [&_h3]:text-[1.0625rem] [&_p]:m-0 [&_p]:text-[0.9375rem] [&_p]:text-n-700">
+            <h3><ClipboardList size={18} aria-hidden="true" /> Ajukan pinjam</h3>
+            <p>Masuk atau daftar akun, lalu tekan tombol &ldquo;Ajukan Pinjam&rdquo; pada halaman buku.</p>
+          </li>
+          <li className="relative rounded-lg bg-navy-50 p-5 before:mb-2.5 before:grid before:size-9 before:place-items-center before:rounded-full before:bg-yellow-500 before:font-heading before:font-bold before:text-navy-800 before:[counter-increment:step] before:content-[counter(step)] [&_h3]:mb-1 [&_h3]:flex [&_h3]:items-center [&_h3]:gap-2 [&_h3]:text-[1.0625rem] [&_p]:m-0 [&_p]:text-[0.9375rem] [&_p]:text-n-700">
+            <h3><Handshake size={18} aria-hidden="true" /> Datang ke Meja Layanan</h3>
+            <p>Pegawai akan memeriksa dan menyetujui pengajuan Anda saat Anda hadir.</p>
+          </li>
+          <li className="relative rounded-lg bg-navy-50 p-5 before:mb-2.5 before:grid before:size-9 before:place-items-center before:rounded-full before:bg-yellow-500 before:font-heading before:font-bold before:text-navy-800 before:[counter-increment:step] before:content-[counter(step)] [&_h3]:mb-1 [&_h3]:flex [&_h3]:items-center [&_h3]:gap-2 [&_h3]:text-[1.0625rem] [&_p]:m-0 [&_p]:text-[0.9375rem] [&_p]:text-n-700">
+            <h3><Undo2 size={18} aria-hidden="true" /> Kembalikan tepat waktu</h3>
+            <p>Kembalikan sebelum jatuh tempo agar terhindar dari denda.</p>
+          </li>
         </ol>
       </section>
 
       <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8" aria-labelledby="h-info">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3 [&_h2]:m-0 [&_h2]:text-2xl [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-n-700">
           <div>
-            <h1 id="h-info"><Megaphone size={24} aria-hidden="true" className="align-[-3px]" /> Pengumuman Terbaru</h1>
+            <h2 id="h-info" className="flex items-center gap-2">
+              <Megaphone size={24} aria-hidden="true" /> Pengumuman Terbaru
+            </h2>
           </div>
           <Link
             href="/pengumuman"
@@ -220,7 +237,7 @@ export default async function HomePage() {
         <section className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col items-start justify-between gap-6 rounded-[24px] bg-navy-50 p-7 md:px-10 md:py-9 lg:flex-row lg:items-center [&_h2]:mt-0 [&_h2]:mb-1 [&_p]:m-0 [&_p]:text-n-700">
             <div className="max-w-[50ch]">
-              <h1>Ingin meminjam buku?</h1>
+              <h2>Ingin meminjam buku?</h2>
               <p>Mahasiswa mendaftar dengan email kampus, pengunjung umum dengan email apa saja. Gratis dan hanya butuh satu menit.</p>
             </div>
             <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
