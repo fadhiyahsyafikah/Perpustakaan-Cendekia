@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Search, ListChecks, Download } from "lucide-react";
+import { ListChecks, Download } from "lucide-react";
 import { requireUser } from "@/lib/session";
 import { searchLoans } from "@/lib/data/loans";
 import { PageHeader, EmptyState, Pagination, StatusBadge } from "@/components/ui";
+import AutoFilterBar from "@/components/AutoFilterBar";
 import { LOAN_STATUS, idLabel } from "@/lib/config";
 import { str, tanggalSingkat, rupiah } from "@/lib/format";
-import { T, btn, ctl } from "@/lib/styles";
+import { T, btn } from "@/lib/styles";
 
 export const metadata = { title: "Monitoring Transaksi" };
 
@@ -20,19 +21,21 @@ export default async function TransaksiPage({ searchParams }) {
   return (
     <div className="grid gap-5">
       <PageHeader title="Monitoring Transaksi" subtitle={`${data.total} transaksi ditemukan. Menampilkan seluruh log peminjaman dan status denda.`} actions={<Link href="/admin/laporan" className={btn("outline")}><Download size={18} aria-hidden="true" /> Unduh laporan</Link>} />
-      <form action="/admin/transaksi" method="get" role="search" className="mb-4 flex flex-wrap items-end gap-2.5 [&>div]:flex-[1_1_200px] [&>button]:flex-none [&>a]:flex-none">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="q" className="text-[0.9375rem] font-semibold text-n-900">Cari nama, NIM/ID, atau judul</label>
-          <div className="relative [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:top-1/2 [&>svg]:left-3.5 [&>svg]:-translate-y-1/2 [&>svg]:text-n-500 [&_input]:pl-[46px]"><Search size={20} aria-hidden="true" /><input id="q" name="q" type="search" className={ctl.input} defaultValue={q} /></div>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="status" className="text-[0.9375rem] font-semibold text-n-900">Status</label>
-          <select id="status" name="status" className={ctl.select} defaultValue={status}><option value="">Semua status</option>{Object.values(LOAN_STATUS).map((s) => <option key={s}>{s}</option>)}</select>
-        </div>
-        <div className="flex flex-col gap-1.5"><label htmlFor="from" className="text-[0.9375rem] font-semibold text-n-900">Dari tanggal</label><input id="from" name="from" type="date" className={ctl.input} defaultValue={from} /></div>
-        <div className="flex flex-col gap-1.5"><label htmlFor="to" className="text-[0.9375rem] font-semibold text-n-900">Sampai tanggal</label><input id="to" name="to" type="date" className={ctl.input} defaultValue={to} /></div>
-        <button className={btn("primary")} type="submit">Terapkan</button>
-      </form>
+      <AutoFilterBar
+        values={{ q, status, from, to }}
+        fields={[
+          { name: "q", label: "Cari nama, NIM/ID, atau judul", type: "search" },
+          {
+            name: "status",
+            label: "Status",
+            type: "select",
+            placeholder: "Semua status",
+            options: Object.values(LOAN_STATUS),
+          },
+          { name: "from", label: "Dari tanggal", type: "date" },
+          { name: "to", label: "Sampai tanggal", type: "date" },
+        ]}
+      />
       {data.items.length ? (
         <div className="overflow-hidden rounded-lg border border-n-200 bg-white max-md:overflow-visible max-md:border-0 max-md:bg-transparent">
           <table className={T.table}>
@@ -41,7 +44,7 @@ export default async function TransaksiPage({ searchParams }) {
               {data.items.map((l) => (
                 <tr key={l.id} className={T.tr}>
                   <td data-label="Peminjam" className={T.td}><b>{l.full_name}</b><br /><small className="text-n-700">{idLabel(l.role)} {l.identity_number}</small></td>
-                  <td  data-label="Buku" className={T.tdMain}>{l.title}</td>
+                  <td data-label="Buku" className={T.tdMain}>{l.title}</td>
                   <td data-label="Status" className={T.td}><StatusBadge status={l.status} />{l.overdue && <> <StatusBadge status="Terlambat" /></>}</td>
                   <td data-label="Diajukan" className={T.td}>{tanggalSingkat(l.requested_at)}</td>
                   <td data-label="Jatuh tempo" className={T.td}>{l.due_date ? tanggalSingkat(l.due_date) : "-"}</td>

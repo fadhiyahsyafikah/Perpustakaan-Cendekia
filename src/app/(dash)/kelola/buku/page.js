@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { Plus, Pencil, Trash2, Search, BookCopy } from "lucide-react";
+import { Plus, Pencil, Trash2, BookCopy } from "lucide-react";
 import { requireUser } from "@/lib/session";
 import { searchBooks, listCategoryOptions } from "@/lib/data/books";
 import { PageHeader, EmptyState, Pagination } from "@/components/ui";
+import AutoFilterBar from "@/components/AutoFilterBar";
 import BookCover from "@/components/BookCover";
 import ConfirmForm from "@/components/ConfirmForm";
 import { deleteBook } from "@/actions/books";
 import { CONFIG } from "@/lib/config";
 import { str } from "@/lib/format";
-import { T, btn, ctl, cx, stock } from "@/lib/styles";
+import { T, btn, cx, stock } from "@/lib/styles";
 
 export const metadata = { title: "Kelola Buku" };
 
@@ -28,20 +29,19 @@ export default async function KelolaBuku({ searchParams }) {
         subtitle={`${data.total} buku dalam koleksi. Tambah, ubah, atau hapus buku dan stoknya.`}
         actions={<Link href="/kelola/buku/baru" className={btn("primary")}><Plus size={18} aria-hidden="true" /> Tambah buku</Link>}
       />
-      <form action="/kelola/buku" method="get" role="search" className="mb-4 flex flex-wrap items-end gap-2.5 [&>div]:flex-[1_1_200px] [&>button]:flex-none [&>a]:flex-none">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="q" className="text-[0.9375rem] font-semibold text-n-900">Cari judul, ISBN, atau pengarang</label>
-          <div className="relative [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:top-1/2 [&>svg]:left-3.5 [&>svg]:-translate-y-1/2 [&>svg]:text-n-500 [&_input]:pl-[46px]"><Search size={20} aria-hidden="true" /><input id="q" name="q" type="search" className={ctl.input} defaultValue={q} /></div>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="kategori" className="text-[0.9375rem] font-semibold text-n-900">Kategori</label>
-          <select id="kategori" name="kategori" className={ctl.select} defaultValue={kategori}>
-            <option value="">Semua kategori</option>
-            {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
-        <button className={btn("primary")} type="submit">Terapkan</button>
-      </form>
+      <AutoFilterBar
+        values={{ q, kategori }}
+        fields={[
+          { name: "q", label: "Cari judul, ISBN, atau pengarang", type: "search" },
+          {
+            name: "kategori",
+            label: "Kategori",
+            type: "select",
+            placeholder: "Semua kategori",
+            options: cats.map((c) => ({ value: String(c.id), label: c.name })),
+          },
+        ]}
+      />
 
       {data.items.length ? (
         <div className="overflow-hidden rounded-lg border border-n-200 bg-white max-md:overflow-visible max-md:border-0 max-md:bg-transparent">
