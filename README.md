@@ -211,7 +211,7 @@ perpustakaan-cendekia/
 
 1. **Kloning repositori proyek:**
    ```bash
-   git clone [https://github.com/fadhiyahsyafikah/Perpustakaan-Cendekia.git](https://github.com/fadhiyahsyafikah/Perpustakaan-Cendekia.git)
+   git clone (https://github.com/fadhiyahsyafikah/Perpustakaan-Cendekia.git)
    cd Perpustakaan-Cendekia
    ```
 
@@ -251,8 +251,6 @@ Gunakan kredensial pengujian berikut (sesuai data *seed* database lokal) untuk m
 | **Pegawai Perpustakaan** | `pegawai@cendekia.ac.id` | `Cendekia123` | Konfirmasi pengajuan pinjam, proses pengembalian, perpanjangan, pembayaran denda, serta kelola buku dan pengumuman. |
 | **Mahasiswa** | `andi.pratama@ui.ac.id, dewi.lestari@ipb.ac.id, ahmad.fauzan@unair.ac.id, siti.arahma@itb.ac.id` | `Cendekia123` | Ajukan pinjam buku, masuk antrean reservasi, pantau notifikasi, pemberitahuan denda, riwayat peminjaman dan transaksi dan beri ulasan. |
 | **Pengunjung Umum** | `naradefara@gmail.com` | `Nd56575899` | Registrasi umum, peminjaman buku, masuk antrean reservasi, pantau notifikasi, pemberitahuan denda, riwayat peminjaman dan transaksi dan beri ulasan. |
-
-> **Catatan:** Kredensial di atas hanya ditujukan untuk pengujian lokal. Segera ubah kata sandi apabila aplikasi diterapkan pada lingkungan produksi.
 
 ---
 
