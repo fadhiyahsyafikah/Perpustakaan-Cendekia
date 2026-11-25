@@ -1,0 +1,1916 @@
+--
+-- PostgreSQL database dump
+--
+
+\restrict 5BPLwFg1IekI2kxJbHFtUilycvtpNffTuXC8OI86PFnwjM402K1rjrO7EoG2tmh
+
+-- Dumped from database version 18.6
+-- Dumped by pg_dump version 18.6
+
+-- Started on 2026-11-25 22:20:16
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 239 (class 1255 OID 19574)
+-- Name: wita_today(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.wita_today() RETURNS date
+    LANGUAGE sql STABLE
+    AS $$ SELECT (now() AT TIME ZONE 'Asia/Makassar')::date $$;
+
+
+ALTER FUNCTION public.wita_today() OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 226 (class 1259 OID 19654)
+-- Name: announcements; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.announcements (
+    id integer NOT NULL,
+    title character varying(160) NOT NULL,
+    content text NOT NULL,
+    category character varying(12) NOT NULL,
+    release_date date NOT NULL,
+    status character varying(10) DEFAULT 'Draft'::character varying NOT NULL,
+    author_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT announcements_category_check CHECK (((category)::text = ANY ((ARRAY['Operasional'::character varying, 'Layanan'::character varying, 'Acara'::character varying])::text[]))),
+    CONSTRAINT announcements_status_check CHECK (((status)::text = ANY ((ARRAY['Draft'::character varying, 'Published'::character varying])::text[])))
+);
+
+
+ALTER TABLE public.announcements OWNER TO postgres;
+
+--
+-- TOC entry 225 (class 1259 OID 19653)
+-- Name: announcements_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.announcements_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.announcements_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5194 (class 0 OID 0)
+-- Dependencies: 225
+-- Name: announcements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.announcements_id_seq OWNED BY public.announcements.id;
+
+
+--
+-- TOC entry 224 (class 1259 OID 19619)
+-- Name: books; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.books (
+    id integer NOT NULL,
+    isbn character varying(20) NOT NULL,
+    title character varying(200) NOT NULL,
+    author character varying(200) NOT NULL,
+    publisher character varying(150) NOT NULL,
+    publish_year smallint NOT NULL,
+    category_id integer NOT NULL,
+    total_stock integer NOT NULL,
+    available_stock integer NOT NULL,
+    max_loan_days smallint NOT NULL,
+    fine_per_day integer NOT NULL,
+    cover_url character varying(255),
+    deleted_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT books_fine_per_day_check CHECK ((fine_per_day >= 0)),
+    CONSTRAINT books_max_loan_days_check CHECK ((max_loan_days > 0)),
+    CONSTRAINT books_publish_year_check CHECK (((publish_year >= 1400) AND (publish_year <= 2100))),
+    CONSTRAINT books_total_stock_check CHECK ((total_stock >= 0)),
+    CONSTRAINT ck_books_stock CHECK (((available_stock >= 0) AND (available_stock <= total_stock)))
+);
+
+
+ALTER TABLE public.books OWNER TO postgres;
+
+--
+-- TOC entry 223 (class 1259 OID 19618)
+-- Name: books_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.books_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.books_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5195 (class 0 OID 0)
+-- Dependencies: 223
+-- Name: books_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.books_id_seq OWNED BY public.books.id;
+
+
+--
+-- TOC entry 222 (class 1259 OID 19603)
+-- Name: categories; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.categories (
+    id integer NOT NULL,
+    name character varying(80) NOT NULL,
+    code character varying(20) NOT NULL,
+    description text
+);
+
+
+ALTER TABLE public.categories OWNER TO postgres;
+
+--
+-- TOC entry 221 (class 1259 OID 19602)
+-- Name: categories_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.categories_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.categories_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5196 (class 0 OID 0)
+-- Dependencies: 221
+-- Name: categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
+
+
+--
+-- TOC entry 232 (class 1259 OID 19755)
+-- Name: fines; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.fines (
+    id integer NOT NULL,
+    loan_id integer NOT NULL,
+    user_id integer NOT NULL,
+    late_days integer NOT NULL,
+    fine_per_day integer NOT NULL,
+    amount integer NOT NULL,
+    status character varying(10) DEFAULT 'Tertunggak'::character varying NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    paid_at timestamp with time zone,
+    recorded_by integer,
+    CONSTRAINT ck_fines_amount CHECK ((amount = (late_days * fine_per_day))),
+    CONSTRAINT ck_fines_paid CHECK ((((status)::text <> 'Lunas'::text) OR (paid_at IS NOT NULL))),
+    CONSTRAINT fines_amount_check CHECK ((amount >= 0)),
+    CONSTRAINT fines_fine_per_day_check CHECK ((fine_per_day >= 0)),
+    CONSTRAINT fines_late_days_check CHECK ((late_days >= 0)),
+    CONSTRAINT fines_status_check CHECK (((status)::text = ANY ((ARRAY['Tertunggak'::character varying, 'Lunas'::character varying])::text[])))
+);
+
+
+ALTER TABLE public.fines OWNER TO postgres;
+
+--
+-- TOC entry 231 (class 1259 OID 19754)
+-- Name: fines_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.fines_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.fines_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5197 (class 0 OID 0)
+-- Dependencies: 231
+-- Name: fines_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.fines_id_seq OWNED BY public.fines.id;
+
+
+--
+-- TOC entry 230 (class 1259 OID 19727)
+-- Name: loan_extensions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.loan_extensions (
+    id integer NOT NULL,
+    loan_id integer NOT NULL,
+    status character varying(12) DEFAULT 'Diajukan'::character varying NOT NULL,
+    requested_at timestamp with time zone DEFAULT now() NOT NULL,
+    old_due_date date NOT NULL,
+    new_due_date date,
+    processed_by integer,
+    processed_at timestamp with time zone,
+    note text,
+    CONSTRAINT loan_extensions_status_check CHECK (((status)::text = ANY ((ARRAY['Diajukan'::character varying, 'Disetujui'::character varying, 'Ditolak'::character varying])::text[])))
+);
+
+
+ALTER TABLE public.loan_extensions OWNER TO postgres;
+
+--
+-- TOC entry 229 (class 1259 OID 19726)
+-- Name: loan_extensions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.loan_extensions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.loan_extensions_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5198 (class 0 OID 0)
+-- Dependencies: 229
+-- Name: loan_extensions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.loan_extensions_id_seq OWNED BY public.loan_extensions.id;
+
+
+--
+-- TOC entry 228 (class 1259 OID 19682)
+-- Name: loans; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.loans (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    book_id integer NOT NULL,
+    status character varying(24) DEFAULT 'Menunggu Konfirmasi'::character varying NOT NULL,
+    requested_at timestamp with time zone DEFAULT now() NOT NULL,
+    loan_date date,
+    due_date date,
+    returned_at date,
+    extension_count smallint DEFAULT 0 NOT NULL,
+    reject_reason text,
+    approved_by integer,
+    returned_confirmed_by integer,
+    CONSTRAINT ck_loans_date_order CHECK (((returned_at IS NULL) OR (loan_date IS NULL) OR (returned_at >= loan_date))),
+    CONSTRAINT ck_loans_dates_set CHECK ((((status)::text <> ALL ((ARRAY['Sedang Dipinjam'::character varying, 'Perpanjangan Diajukan'::character varying, 'Selesai'::character varying])::text[])) OR ((loan_date IS NOT NULL) AND (due_date IS NOT NULL)))),
+    CONSTRAINT ck_loans_reason CHECK ((((status)::text <> 'Ditolak'::text) OR (reject_reason IS NOT NULL))),
+    CONSTRAINT ck_loans_returned CHECK ((((status)::text <> 'Selesai'::text) OR (returned_at IS NOT NULL))),
+    CONSTRAINT loans_extension_count_check CHECK (((extension_count >= 0) AND (extension_count <= 1))),
+    CONSTRAINT loans_status_check CHECK (((status)::text = ANY ((ARRAY['Menunggu Konfirmasi'::character varying, 'Sedang Dipinjam'::character varying, 'Perpanjangan Diajukan'::character varying, 'Ditolak'::character varying, 'Selesai'::character varying])::text[])))
+);
+
+
+ALTER TABLE public.loans OWNER TO postgres;
+
+--
+-- TOC entry 227 (class 1259 OID 19681)
+-- Name: loans_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.loans_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.loans_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5199 (class 0 OID 0)
+-- Dependencies: 227
+-- Name: loans_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.loans_id_seq OWNED BY public.loans.id;
+
+
+--
+-- TOC entry 238 (class 1259 OID 19855)
+-- Name: notifications; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.notifications (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    type character varying(30) NOT NULL,
+    message text NOT NULL,
+    is_read boolean DEFAULT false NOT NULL,
+    ref_loan_id integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.notifications OWNER TO postgres;
+
+--
+-- TOC entry 237 (class 1259 OID 19854)
+-- Name: notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.notifications_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.notifications_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5200 (class 0 OID 0)
+-- Dependencies: 237
+-- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.notifications_id_seq OWNED BY public.notifications.id;
+
+
+--
+-- TOC entry 236 (class 1259 OID 19829)
+-- Name: reservations; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.reservations (
+    id integer NOT NULL,
+    book_id integer NOT NULL,
+    user_id integer NOT NULL,
+    status character varying(14) DEFAULT 'Menunggu'::character varying NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone,
+    CONSTRAINT reservations_status_check CHECK (((status)::text = ANY ((ARRAY['Menunggu'::character varying, 'Siap Diambil'::character varying, 'Selesai'::character varying, 'Dibatalkan'::character varying, 'Kedaluwarsa'::character varying])::text[])))
+);
+
+
+ALTER TABLE public.reservations OWNER TO postgres;
+
+--
+-- TOC entry 235 (class 1259 OID 19828)
+-- Name: reservations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.reservations_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.reservations_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5201 (class 0 OID 0)
+-- Dependencies: 235
+-- Name: reservations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.reservations_id_seq OWNED BY public.reservations.id;
+
+
+--
+-- TOC entry 234 (class 1259 OID 19795)
+-- Name: reviews; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.reviews (
+    id integer NOT NULL,
+    loan_id integer NOT NULL,
+    book_id integer NOT NULL,
+    user_id integer NOT NULL,
+    rating smallint NOT NULL,
+    comment character varying(500),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT reviews_rating_check CHECK (((rating >= 1) AND (rating <= 5)))
+);
+
+
+ALTER TABLE public.reviews OWNER TO postgres;
+
+--
+-- TOC entry 233 (class 1259 OID 19794)
+-- Name: reviews_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.reviews_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.reviews_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5202 (class 0 OID 0)
+-- Dependencies: 233
+-- Name: reviews_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.reviews_id_seq OWNED BY public.reviews.id;
+
+
+--
+-- TOC entry 220 (class 1259 OID 19576)
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    id integer NOT NULL,
+    full_name character varying(120) NOT NULL,
+    email character varying(150) NOT NULL,
+    password_hash character varying(255) NOT NULL,
+    role character varying(12) NOT NULL,
+    identity_number character varying(30) NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT users_role_check CHECK (((role)::text = ANY ((ARRAY['admin'::character varying, 'pegawai'::character varying, 'mahasiswa'::character varying, 'umum'::character varying])::text[])))
+);
+
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- TOC entry 219 (class 1259 OID 19575)
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.users_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5203 (class 0 OID 0)
+-- Dependencies: 219
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+--
+-- TOC entry 4910 (class 2604 OID 19657)
+-- Name: announcements id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.announcements ALTER COLUMN id SET DEFAULT nextval('public.announcements_id_seq'::regclass);
+
+
+--
+-- TOC entry 4907 (class 2604 OID 19622)
+-- Name: books id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.books ALTER COLUMN id SET DEFAULT nextval('public.books_id_seq'::regclass);
+
+
+--
+-- TOC entry 4906 (class 2604 OID 19606)
+-- Name: categories id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.categories_id_seq'::regclass);
+
+
+--
+-- TOC entry 4921 (class 2604 OID 19758)
+-- Name: fines id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.fines ALTER COLUMN id SET DEFAULT nextval('public.fines_id_seq'::regclass);
+
+
+--
+-- TOC entry 4918 (class 2604 OID 19730)
+-- Name: loan_extensions id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.loan_extensions ALTER COLUMN id SET DEFAULT nextval('public.loan_extensions_id_seq'::regclass);
+
+
+--
+-- TOC entry 4914 (class 2604 OID 19685)
+-- Name: loans id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.loans ALTER COLUMN id SET DEFAULT nextval('public.loans_id_seq'::regclass);
+
+
+--
+-- TOC entry 4929 (class 2604 OID 19858)
+-- Name: notifications id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications ALTER COLUMN id SET DEFAULT nextval('public.notifications_id_seq'::regclass);
+
+
+--
+-- TOC entry 4926 (class 2604 OID 19832)
+-- Name: reservations id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.reservations ALTER COLUMN id SET DEFAULT nextval('public.reservations_id_seq'::regclass);
+
+
+--
+-- TOC entry 4924 (class 2604 OID 19798)
+-- Name: reviews id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.reviews ALTER COLUMN id SET DEFAULT nextval('public.reviews_id_seq'::regclass);
+
+
+--
+-- TOC entry 4902 (class 2604 OID 19579)
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- TOC entry 5176 (class 0 OID 19654)
+-- Dependencies: 226
+-- Data for Name: announcements; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.announcements VALUES (1, 'Jam Layanan Perpustakaan Selama Masa Ujian', 'Selama masa ujian, perpustakaan buka lebih lama agar mahasiswa dapat belajar dengan nyaman.
+
+Jam layanan: Senin sampai Kamis pukul 08.00 sampai 20.00 WITA, Jumat pukul 08.00 sampai 17.00 WITA, dan Sabtu pukul 09.00 sampai 14.00 WITA. Perpustakaan tutup pada hari Minggu dan hari libur nasional.
+
+Meja sirkulasi berhenti menerima pengembalian 30 menit sebelum perpustakaan tutup.', 'Operasional', '2026-11-21', 'Published', 2, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.announcements VALUES (2, 'Tambahan Koleksi: Sastra, Sains, dan Teknologi', 'Perpustakaan Cendekia menambah koleksi baru, antara lain karya sastra Indonesia, buku sains populer, dan buku pemrograman terkini.
+
+Cari judul-judul terbaru melalui halaman Katalog, lalu ajukan peminjaman langsung dari halaman detail buku. Silakan datang ke meja sirkulasi untuk mengambil buku setelah pengajuan Anda disetujui.', 'Layanan', '2026-11-18', 'Published', 3, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.announcements VALUES (3, 'Bedah Buku Laut Bercerita', 'Ikuti diskusi bedah buku Laut Bercerita bersama dosen dan pegiat literasi kampus. Acara terbuka untuk seluruh mahasiswa dan gratis.
+
+Tempat: ruang baca lantai 2. Peserta yang hadir mendapat kesempatan meminjam buku tanpa antre pada hari acara.', 'Acara', '2026-11-22', 'Published', 2, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.announcements VALUES (4, 'Aturan Denda dan Cara Pembayaran', 'Keterlambatan pengembalian dikenakan denda per hari sesuai tarif pada halaman detail buku. Pengembalian pada hari jatuh tempo tidak dikenakan denda.
+
+Denda dibayar tunai di meja sirkulasi. Selama masih ada denda yang belum lunas, pengajuan pinjaman baru tidak dapat dilakukan.', 'Layanan', '2026-11-13', 'Published', 3, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.announcements VALUES (5, 'Peresmian Ruang Baca Digital', 'Ruang baca digital akan diresmikan pekan depan. Informasi lengkap menyusul.', 'Acara', '2026-11-30', 'Published', 2, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.announcements VALUES (6, 'Pelatihan Penelusuran Literatur (Draft)', 'Draf pengumuman pelatihan penelusuran literatur ilmiah. Jadwal dan tempat masih disusun dan belum dipublikasikan.', 'Acara', '2026-11-26', 'Draft', 3, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+
+
+--
+-- TOC entry 5174 (class 0 OID 19619)
+-- Dependencies: 224
+-- Data for Name: books; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.books VALUES (72, '9780132350884', 'Clean Code', 'Robert C. Martin', 'Prentice Hall', 2008, 7, 2, 1, 14, 2000, '/api/covers/559731e5-53cc-4716-9dc6-54ffc2867c63.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-23 07:09:03.6299+08');
+INSERT INTO public.books VALUES (97, '9988776655453', 'testing', '*()()hjgju76', 'kyuiyi', 2007, 10, 10000, 10000, 14, 16000, 'https://cdn.marvel.com/content/2x/asm1000_previewa.webp', '2026-11-23 10:45:27.658888+08', '2026-11-23 10:43:59.895858+08', '2026-11-23 10:45:27.658888+08');
+INSERT INTO public.books VALUES (67, '9780553380163', 'A Brief History of Time', 'Stephen Hawking', 'Bantam', 1998, 6, 2, 2, 14, 1000, '/api/covers/3be95bf9-1702-483e-8fc2-4251d67b8e87.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:33:30.508789+08');
+INSERT INTO public.books VALUES (24, '9786020318929', 'Critical Eleven', 'Ika Natassa', 'Gramedia Pustaka Utama', 2015, 2, 5, 5, 7, 1000, '/api/covers/a68eabac-93cb-4c81-be7a-69b4379ed47a.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:47:40.283956+08');
+INSERT INTO public.books VALUES (66, '9780393317558', 'Guns, Germs, and Steel', 'Jared Diamond', 'W. W. Norton', 1999, 5, 5, 5, 14, 1000, '/api/covers/f648c35c-8796-447c-9937-7a23d8c4ae06.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:06:42.641775+08');
+INSERT INTO public.books VALUES (51, '9780399501487', 'Lord of the Flies', 'William Golding', 'Perigee', 2003, 4, 4, 4, 14, 1000, '/api/covers/93747f93-4aef-458a-9a14-f1abfb328ca6.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:06:44.377637+08');
+INSERT INTO public.books VALUES (62, '9786029498523', 'Sepatu Dahlan', 'Khrisna Pabichara', 'Noura Books', 2012, 5, 5, 5, 14, 1000, '/api/covers/b01cfb8b-b4d5-41ad-8bae-79f1c4c55907.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:09:58.094244+08');
+INSERT INTO public.books VALUES (52, '9780684801223', 'The Old Man and the Sea', 'Ernest Hemingway', 'Scribner', 1995, 4, 5, 5, 14, 1000, '/api/covers/73d2d757-9fd1-4511-a341-41600da57a9d.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:37:27.364881+08');
+INSERT INTO public.books VALUES (30, '9780141345659', 'The Fault in Our Stars', 'John Green', 'Dutton Books', 2012, 2, 3, 3, 7, 1000, '/api/covers/533efc9b-f0f4-426c-a6f7-6a86125470cb.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:23:40.289687+08');
+INSERT INTO public.books VALUES (10, '9786024246945', 'Laut Bercerita', 'Leila S. Chudori', 'Kepustakaan Populer Gramedia', 2017, 1, 3, 3, 14, 1000, '/api/covers/1e0d13f9-9bf6-4c34-8769-f35a89fdcc84.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-23 07:08:34.564398+08');
+INSERT INTO public.books VALUES (48, '9780061120084', 'To Kill a Mockingbird', 'Harper Lee', 'Harper Perennial', 2002, 4, 5, 5, 14, 1000, '/api/covers/7487405d-ac06-4749-9421-f759fcd44637.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:40:59.444373+08');
+INSERT INTO public.books VALUES (1, '9786022916628', 'Laskar Pelangi', 'Andrea Hirata', 'Bentang Pustaka', 2005, 1, 5, 5, 14, 1000, '/api/covers/c63be6e7-8e87-4844-b89d-a71089fb0442.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-23 10:30:39.148736+08');
+INSERT INTO public.books VALUES (6, '9786231066336', 'Anak Semua Bangsa', 'Pramoedya Ananta Toer', 'Lentera Dipantara', 2006, 1, 3, 3, 14, 1000, '/api/covers/0700f5bd-6a64-4aa4-8b57-79caa2fd747b.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:34:06.738874+08');
+INSERT INTO public.books VALUES (25, '9786020303314', 'Antologi Rasa', 'Ika Natassa', 'Gramedia Pustaka Utama', 2011, 2, 2, 2, 7, 1000, '/api/covers/8ed8f7b4-0d27-469b-b6a8-a52332949531.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:34:49.798876+08');
+INSERT INTO public.books VALUES (13, '9786020312583', 'Cantik Itu Luka', 'Eka Kurniawan', 'Gramedia Pustaka Utama', 2015, 1, 2, 2, 14, 1000, '/api/covers/4bf567bf-523c-4c40-baec-7f83c4fc54c8.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:41:52.037757+08');
+INSERT INTO public.books VALUES (17, '9786022504177', 'Di Bawah Lindungan Ka''bah', 'Hamka', 'Balai Pustaka', 1938, 1, 2, 2, 14, 1000, '/api/covers/eba34fcc-4db7-4759-bd46-8e465c43c11e.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:59:30.519207+08');
+INSERT INTO public.books VALUES (21, '9786027870413', 'Dilan 1990', 'Pidi Baiq', 'Pastel Books', 2014, 2, 1, 0, 7, 1000, '/api/covers/9a600980-8c5a-4cff-8ca5-5986883f948f.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:59:49.215787+08');
+INSERT INTO public.books VALUES (3, '9786027888982', 'Edensor', 'Andrea Hirata', 'Bentang Pustaka', 2007, 1, 4, 4, 14, 1000, '/api/covers/a7d43eb1-48d3-4b1c-8b86-1ac053cbdb1e.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:01:23.943164+08');
+INSERT INTO public.books VALUES (64, '9780062464316', 'Homo Deus', 'Yuval Noah Harari', 'Harper', 2017, 5, 3, 3, 14, 1000, '/api/covers/fd327f5e-f912-42da-ab25-6eff2c5d091b.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:15:20.244901+08');
+INSERT INTO public.books VALUES (7, '9786231066343', 'Jejak Langkah', 'Pramoedya Ananta Toer', 'Lentera Dipantara', 2006, 1, 4, 4, 14, 1000, '/api/covers/4c14ed46-213d-45fe-bc27-d31866ce0869.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:22:34.98325+08');
+INSERT INTO public.books VALUES (11, '9789792248616', 'Negeri 5 Menara', 'A. Fuadi', 'Gramedia Pustaka Utama', 2009, 1, 4, 4, 14, 1000, '/api/covers/8efbffbb-0fbe-427b-a828-40de7f8994bc.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:26:13.422117+08');
+INSERT INTO public.books VALUES (65, '9780593734223', 'Nexus', 'Yuval Noah Harari', 'Random House', 2024, 5, 4, 4, 14, 1000, '/api/covers/a69e40c1-73bf-4e19-afea-0dac89297713.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:30:50.183083+08');
+INSERT INTO public.books VALUES (9, '9786024242756', 'Pulang', 'Leila S. Chudori', 'Kepustakaan Populer Gramedia', 2012, 1, 2, 2, 14, 1000, '/api/covers/78c8fdba-b61f-4bf6-a3aa-ed10eb8dc75f.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:56:28.143814+08');
+INSERT INTO public.books VALUES (12, '9786020681955', 'Ronggeng Dukuh Paruk', 'Ahmad Tohari', 'Gramedia Pustaka Utama', 2003, 1, 5, 5, 14, 1000, '/api/covers/22c58133-d00e-4ced-8ec9-3000113e9df1.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:00:03.22671+08');
+INSERT INTO public.books VALUES (8, '9786231066350', 'Rumah Kaca', 'Pramoedya Ananta Toer', 'Lentera Dipantara', 2006, 1, 5, 5, 14, 1000, '/api/covers/46180664-6453-4cb0-8ef9-ba56d0566e54.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:01:39.823324+08');
+INSERT INTO public.books VALUES (16, '9786022601241', 'Salah Asuhan', 'Abdoel Moeis', 'Balai Pustaka', 1928, 1, 5, 5, 14, 1000, '/api/covers/b61775d6-41e3-48d4-ad32-bd5c62cb1147.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:02:48.547235+08');
+INSERT INTO public.books VALUES (14, '9786024243999', 'Saman', 'Ayu Utami', 'Kepustakaan Populer Gramedia', 1998, 1, 3, 3, 14, 1000, '/api/covers/2aa0b6cb-3b56-415a-be71-d47b57c5075c.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:03:43.855222+08');
+INSERT INTO public.books VALUES (2, '9786022916635', 'Sang Pemimpi', 'Andrea Hirata', 'Bentang Pustaka', 2006, 1, 3, 3, 14, 1000, '/api/covers/9d404c6c-4f4d-4621-bc2f-4f6afe277d76.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:08:04.532259+08');
+INSERT INTO public.books VALUES (15, '9786022601289', 'Siti Nurbaya', 'Marah Rusli', 'Balai Pustaka', 1922, 1, 4, 4, 14, 1000, '/api/covers/9c330778-408a-4840-b6b7-797966259765.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:10:44.562997+08');
+INSERT INTO public.books VALUES (18, '9786022504160', 'Tenggelamnya Kapal Van Der Wijck', 'Hamka', 'Balai Pustaka', 1939, 1, 3, 3, 14, 1000, '/api/covers/3c941588-3907-464f-8495-6138c7bb0cd7.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:20:33.072049+08');
+INSERT INTO public.books VALUES (4, '9786022911029', 'Ayah', 'Andrea Hirata', 'Bentang Pustaka', 2015, 1, 5, 4, 14, 1000, '/api/covers/c95d7dc4-692b-4988-a1cc-f5f8367101ca.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 20:55:18.844903+08');
+INSERT INTO public.books VALUES (5, '9786231066329', 'Bumi Manusia', 'Pramoedya Ananta Toer', 'Lentera Dipantara', 2005, 1, 2, 2, 14, 1000, '/api/covers/4e4341d5-1084-423d-8f0c-3cb1cafc6901.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-25 16:49:19.46532+08');
+INSERT INTO public.books VALUES (63, '9780062316097', 'Sapiens', 'Yuval Noah Harari', 'Harper', 2015, 5, 2, 1, 14, 1000, '/api/covers/1047ae93-20c8-4701-a9db-6323c804ebf7.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-23 07:10:13.231309+08');
+INSERT INTO public.books VALUES (43, '9780441569595', 'Neuromancer', 'William Gibson', 'Ace', 1984, 3, 4, 4, 14, 1000, '/api/covers/12537c67-727e-4974-b740-8a0046c330cd.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:27:32.708443+08');
+INSERT INTO public.books VALUES (46, '9780451524935', '1984', 'George Orwell', 'Plume', 2003, 4, 3, 3, 14, 1000, '/api/covers/48da3e52-76a8-4ee5-a851-6511fc449109.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:33:10.926691+08');
+INSERT INTO public.books VALUES (38, '9786020900292', 'A Game of Thrones', 'George R.R. Martin', 'Bantam', 2011, 3, 3, 3, 14, 1000, '/api/covers/8723b66f-862a-490e-a919-6928af9878a0.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:33:51.845218+08');
+INSERT INTO public.books VALUES (47, '9780451526342', 'Animal Farm', 'George Orwell', 'Plume', 2003, 4, 4, 4, 14, 1000, '/api/covers/4a1a3a6a-9bd6-42f3-9008-a7e16bad1727.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:34:27.604762+08');
+INSERT INTO public.books VALUES (69, '9780393609394', 'Astrophysics for People in a Hurry', 'Neil deGrasse Tyson', 'W. W. Norton', 2017, 6, 4, 4, 14, 1000, '/api/covers/5e1deaee-22ff-457b-bd07-9753be4a48d1.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:36:10.560005+08');
+INSERT INTO public.books VALUES (23, '9789793604022', 'Ayat-Ayat Cinta', 'Habiburrahman El Shirazy', 'Republika', 2004, 2, 4, 4, 7, 1000, '/api/covers/a06ca1c3-af7e-4c82-bb08-dc8e3acdb0f4.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:37:45.344572+08');
+INSERT INTO public.books VALUES (50, '9780060850524', 'Brave New World', 'Aldous Huxley', 'Harper Perennial', 2006, 4, 3, 3, 14, 1000, '/api/covers/1d284b2a-4bd5-4790-ba84-e71dd19616a3.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:38:21.366433+08');
+INSERT INTO public.books VALUES (73, '9780134494166', 'Clean Architecture', 'Robert C. Martin', 'Pearson', 2017, 7, 4, 4, 14, 2000, '/api/covers/243820e8-c00a-47a7-b833-c9d761ac00ba.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:42:13.122128+08');
+INSERT INTO public.books VALUES (68, '9780345539434', 'Cosmos', 'Carl Sagan', 'Ballantine Books', 2013, 6, 3, 3, 14, 1000, '/api/covers/5cd45abd-1aad-415a-a4c4-fe5f28276096.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:47:18.445599+08');
+INSERT INTO public.books VALUES (56, '9780063251922', 'Demon Copperhead', 'Barbara Kingsolver', 'Harper', 2022, 4, 2, 2, 14, 1000, '/api/covers/ddea566a-a4ed-418f-afb1-b3d8e29b3344.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:48:34.436762+08');
+INSERT INTO public.books VALUES (75, '9780201633610', 'Design Patterns', 'Erich Gamma et al.', 'Addison-Wesley', 1994, 7, 2, 2, 14, 2000, '/api/covers/ed4a4df1-bbd1-456b-a2c6-59145e6bfe02.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:58:32.557832+08');
+INSERT INTO public.books VALUES (39, '9780441172719', 'Dune', 'Frank Herbert', 'Ace', 1990, 3, 4, 4, 14, 1000, '/api/covers/b1d98f97-ebb7-422b-9927-c6a8eade9c3e.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:00:17.577756+08');
+INSERT INTO public.books VALUES (41, '9780812550702', 'Ender''s Game', 'Orson Scott Card', 'Tor', 1994, 3, 2, 2, 14, 1000, '/api/covers/196631e4-7322-4a54-a4c3-b776a1255f24.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:01:58.983033+08');
+INSERT INTO public.books VALUES (40, '9780553293357', 'Foundation', 'Isaac Asimov', 'Bantam', 1991, 3, 5, 5, 14, 1000, '/api/covers/f6526017-bc6e-410c-aa2c-71cd1fdc4d6b.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:04:16.367222+08');
+INSERT INTO public.books VALUES (55, '9780307588371', 'Gone Girl', 'Gillian Flynn', 'Broadway Books', 2012, 4, 4, 4, 14, 1000, '/api/covers/1b033553-83fa-4fa6-bee6-ebbde839a694.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:06:01.209472+08');
+INSERT INTO public.books VALUES (61, '9789791255134', 'Habibie & Ainun', 'B.J. Habibie', 'THC Mandiri', 2010, 5, 4, 4, 14, 1000, '/api/covers/df4609a6-d172-4016-85f1-1485c7255707.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:09:22.684308+08');
+INSERT INTO public.books VALUES (34, '9796558513', 'Harry Potter and the Sorcerer''s Stone', 'J.K. Rowling', 'Scholastic', 1997, 3, 3, 3, 14, 1000, '/api/covers/38f19035-3b9b-4426-a654-76903e3b2842.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:09:51.980382+08');
+INSERT INTO public.books VALUES (27, '9786020658049', 'Home Sweet Loan', 'Almira Bastari', 'Gramedia Pustaka Utama', 2021, 2, 4, 4, 7, 1000, '/api/covers/d32b2ee0-32ab-45b5-ac3b-d7bb7f81568e.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:12:39.825221+08');
+INSERT INTO public.books VALUES (33, '9786020324784', 'Hujan', 'Tere Liye', 'Gramedia Pustaka Utama', 2016, 3, 2, 2, 14, 1000, '/api/covers/1261bb27-99df-4036-b897-fb82c1008daa.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-25 13:59:40.265716+08');
+INSERT INTO public.books VALUES (59, '9789799731289', 'Jalan Raya Pos, Jalan Daendels', 'Pramoedya Ananta Toer', 'Lentera Dipantara', 2005, 5, 5, 5, 14, 1000, '/api/covers/22e1fea4-8eb1-4f7a-aa31-fadfe7f63b59.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:18:42.208986+08');
+INSERT INTO public.books VALUES (45, '9780593318171', 'Klara and the Sun', 'Kazuo Ishiguro', 'Knopf', 2021, 3, 2, 2, 14, 1000, '/api/covers/7a1a6d57-c84f-4e0d-bc5e-e8ffc75514b7.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:24:10.533487+08');
+INSERT INTO public.books VALUES (57, '9780385547345', 'Lessons in Chemistry', 'Bonnie Garmus', 'Doubleday', 2022, 4, 3, 3, 14, 1000, '/api/covers/16b493c2-4f1e-48cd-9cc5-5558141f72f0.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:25:42.495254+08');
+INSERT INTO public.books VALUES (60, '9786025792403', 'Madilog', 'Tan Malaka', 'Narasi', 1943, 5, 3, 3, 14, 1000, '/api/covers/769882ca-f624-4ce9-9c36-764c8c5d834d.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:08:34.758988+08');
+INSERT INTO public.books VALUES (22, '9786025508615', 'Mariposa', 'Luluk HF', 'Coconut Books', 2018, 2, 3, 2, 7, 1000, '/api/covers/7b79762c-a61e-460f-8021-13d37c016386.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:23:17.755027+08');
+INSERT INTO public.books VALUES (71, '9780593236598', 'Outlive', 'Peter Attia', 'Harmony', 2023, 6, 2, 2, 14, 1000, '/api/covers/306a394d-1c35-4b7f-b42a-b082543c5afd.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:31:33.578134+08');
+INSERT INTO public.books VALUES (26, '9789791227780', 'Perahu Kertas', 'Dee Lestari', 'Bentang Pustaka', 2009, 2, 3, 3, 7, 1000, '/api/covers/f41c5633-0739-44b2-8ebd-15e58fcfd9c0.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:32:01.644451+08');
+INSERT INTO public.books VALUES (44, '9780593135204', 'Project Hail Mary', 'Andy Weir', 'Ballantine Books', 2021, 3, 5, 5, 14, 1000, '/api/covers/e430ac29-c2b0-4551-a68b-ae72255c2b67.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:49:33.829468+08');
+INSERT INTO public.books VALUES (20, '978602899794', 'Rindu', 'Tere Liye', 'Republika', 2014, 1, 5, 5, 14, 1000, '/api/covers/b3316d5d-fdaf-4ef6-9e5e-8e6bb79c8f22.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:59:25.633883+08');
+INSERT INTO public.books VALUES (31, '9786022910527', 'Supernova: Ksatria, Puteri, dan Bintang Jatuh', 'Dee Lestari', 'Truedee Books', 2001, 3, 4, 4, 14, 1000, '/api/covers/56b80ba0-ac8d-4e71-a532-55e3d4140a19.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:15:15.872672+08');
+INSERT INTO public.books VALUES (53, '9780062315007', 'The Alchemist', 'Paulo Coelho', 'HarperOne', 1993, 4, 2, 2, 14, 1000, '/api/covers/825c61ef-e173-45b7-868c-406d0e87aad7.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:23:12.300688+08');
+INSERT INTO public.books VALUES (36, '9786020615110', 'The Fellowship of the Ring', 'J.R.R. Tolkien', 'Houghton Mifflin', 2012, 3, 5, 5, 14, 1000, '/api/covers/1482127f-0d44-4542-8d0f-537d0e4a8466.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:24:49.835346+08');
+INSERT INTO public.books VALUES (49, '9780743273565', 'The Great Gatsby', 'F. Scott Fitzgerald', 'Scribner', 2004, 4, 2, 2, 14, 1000, '/api/covers/3378a9a3-9d79-4efa-a87b-e3d3c28367d1.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:25:49.021984+08');
+INSERT INTO public.books VALUES (35, '9789792286335', 'The Hobbit', 'J.R.R. Tolkien', 'Houghton Mifflin', 2012, 3, 4, 4, 14, 1000, '/api/covers/cf015b99-f5f4-4779-90cb-cb22424914f3.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:30:15.619635+08');
+INSERT INTO public.books VALUES (37, '9786020644547', 'The Lion, the Witch and the Wardrobe', 'C.S. Lewis', 'HarperCollins', 1994, 3, 2, 2, 14, 1000, '/api/covers/ef942cd9-1081-4089-832d-b181c1da8227.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:32:56.679646+08');
+INSERT INTO public.books VALUES (54, '9780156012195', 'The Little Prince', 'Antoine de Saint-Exupéry', 'Harcourt', 2000, 4, 3, 3, 14, 1000, '/api/covers/6a8e91bf-1843-4f63-a732-d256efe0642c.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:34:32.27236+08');
+INSERT INTO public.books VALUES (74, '9780135957059', 'The Pragmatic Programmer (20th Anniv.)', 'David Thomas & Andrew Hunt', 'Addison-Wesley', 2019, 7, 5, 5, 14, 2000, '/api/covers/26c579a8-e2f5-486a-a86b-26324e6fa624.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:38:05.309152+08');
+INSERT INTO public.books VALUES (70, '9780198788607', 'The Selfish Gene', 'Richard Dawkins', 'Oxford University Press', 2006, 6, 5, 5, 14, 1000, '/api/covers/b26589c2-73ae-4f39-9a34-067d3d889270.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:39:03.767219+08');
+INSERT INTO public.books VALUES (58, '9780593321201', 'Tomorrow, and Tomorrow, and Tomorrow', 'Gabrielle Zevin', 'Knopf', 2022, 4, 4, 4, 14, 1000, '/api/covers/40913485-e21b-47f5-9683-b0c9480287bb.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:41:24.467977+08');
+INSERT INTO public.books VALUES (90, '9780735211292', 'Atomic Habits', 'James Clear', 'Avery', 2018, 9, 5, 5, 7, 1000, '/api/covers/2d70b728-ecaa-48f2-a275-2ffa82774e6b.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-23 07:09:39.942991+08');
+INSERT INTO public.books VALUES (91, '9781982137274', 'The 7 Habits of Highly Effective People', 'Stephen R. Covey', 'Free Press', 2004, 9, 2, 2, 7, 1000, '/api/covers/81737d5a-c0dc-485f-bcc3-9c087b165af2.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:21:50.002492+08');
+INSERT INTO public.books VALUES (42, '9780345391803', 'The Hitchhiker''s Guide to the Galaxy', 'Douglas Adams', 'Del Rey', 1995, 3, 3, 3, 14, 1000, '/api/covers/563114e3-8258-4292-9f59-d8eca7ef380a.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:28:47.17773+08');
+INSERT INTO public.books VALUES (80, '9780134610993', 'Artificial Intelligence: A Modern Approach (4th ed.)', 'Stuart Russell & Peter Norvig', 'Pearson', 2020, 7, 3, 3, 14, 2000, '/api/covers/54ead1cf-6e02-41ea-bcf6-a32f824e0922.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:35:38.790452+08');
+INSERT INTO public.books VALUES (32, '9786020332956', 'Bumi', 'Tere Liye', 'Gramedia Pustaka Utama', 2014, 3, 5, 5, 14, 1000, '/api/covers/0c8cd232-ad0e-4bf6-8d24-6ebf93ab1ea5.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:40:15.689736+08');
+INSERT INTO public.books VALUES (81, '9780593716717', 'Co-Intelligence', 'Ethan Mollick', 'Portfolio', 2024, 7, 4, 4, 14, 2000, '/api/covers/ce60502a-2b1c-4d0f-8b6a-4e536e1dca9a.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:42:46.582818+08');
+INSERT INTO public.books VALUES (77, '9780735619678', 'Code Complete (2nd ed.)', 'Steve McConnell', 'Microsoft Press', 2004, 7, 4, 4, 14, 2000, '/api/covers/f53ba723-492e-4982-86a4-de6a3bc9b490.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:43:07.885318+08');
+INSERT INTO public.books VALUES (93, '9781455586691', 'Deep Work', 'Cal Newport', 'Grand Central Publishing', 2016, 9, 4, 4, 7, 1000, '/api/covers/c0e60464-36bb-4202-a231-c2ac240e1bab.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:48:12.209034+08');
+INSERT INTO public.books VALUES (79, '9781449373320', 'Designing Data-Intensive Applications', 'Martin Kleppmann', 'O''Reilly Media', 2017, 7, 2, 2, 14, 2000, '/api/covers/2052c294-37de-4e30-a95e-7cc852bc47c8.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 10:59:11.084696+08');
+INSERT INTO public.books VALUES (19, '9786028811613', 'Filosofi Kopi', 'Dee Lestari', 'Truedee Books', 2006, 1, 4, 4, 14, 1000, '/api/covers/6dd22ed8-aa45-4e4e-a634-41f390e378f3.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:02:59.698189+08');
+INSERT INTO public.books VALUES (88, '9786024125189', 'Filosofi Teras', 'Henry Manampiring', 'Kompas', 2018, 9, 3, 3, 7, 1000, '/api/covers/d38968ca-66ec-4a5d-bde8-7b23ab79f744.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:03:23.145604+08');
+INSERT INTO public.books VALUES (87, '9780060731335', 'Freakonomics', 'Steven D. Levitt & Stephen J. Dubner', 'William Morrow', 2005, 8, 2, 2, 14, 1000, '/api/covers/3218baee-df45-4d21-9eab-9d013f7d3c1c.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:04:53.295332+08');
+INSERT INTO public.books VALUES (92, '9780671027032', 'How to Win Friends and Influence People', 'Dale Carnegie', 'Pocket Books', 1998, 9, 3, 3, 7, 1000, '/api/covers/04903d0e-6cd6-43d3-909f-ac55f05b5eb1.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:16:26.053791+08');
+INSERT INTO public.books VALUES (76, '9780262033848', 'Introduction to Algorithms (3rd ed.)', 'Thomas H. Cormen et al.', 'MIT Press', 2009, 7, 3, 3, 14, 2000, '/api/covers/e3ac5bbf-3b8e-4722-aaea-0803646ce46e.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:17:47.328576+08');
+INSERT INTO public.books VALUES (29, '9781853260209', 'Jane Eyre', 'Charlotte Brontë', 'Penguin Classics', 2006, 2, 2, 2, 7, 1000, '/api/covers/911c253e-2dfa-4d07-9e5b-3140546a006c.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 11:19:08.519381+08');
+INSERT INTO public.books VALUES (95, '9780807014271', 'Man''s Search for Meaning', 'Viktor E. Frankl', 'Beacon Press', 2006, 9, 2, 2, 7, 1000, '/api/covers/a48aaa59-4abb-4390-a7d1-87dcfb068e9a.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:22:17.002963+08');
+INSERT INTO public.books VALUES (94, '9780345472328', 'Mindset', 'Carol S. Dweck', 'Ballantine Books', 2007, 9, 5, 5, 7, 1000, '/api/covers/575f4ab2-8dad-474f-8d7b-e0f4abb26182.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:25:04.05955+08');
+INSERT INTO public.books VALUES (28, '9780143138730', 'Pride and Prejudice', 'Jane Austen', 'Penguin Classics', 2002, 2, 5, 5, 7, 1000, '/api/covers/d5c74e86-1109-43cd-ad30-8862e31284ae.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:42:53.777686+08');
+INSERT INTO public.books VALUES (78, '9780134757599', 'Refactoring (2nd ed.)', 'Martin Fowler', 'Addison-Wesley', 2018, 7, 5, 5, 14, 2000, '/api/covers/0de4c19c-e27b-45b8-b0b3-be553f6c7a0c.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:57:59.408997+08');
+INSERT INTO public.books VALUES (82, '9781612680194', 'Rich Dad Poor Dad', 'Robert T. Kiyosaki', 'Plata Publishing', 2011, 8, 5, 5, 14, 1000, '/api/covers/1f62c0fd-9636-4c96-bab9-cdb0644063b4.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 12:58:32.026664+08');
+INSERT INTO public.books VALUES (89, '9786021637517', 'Self Driving', 'Rhenald Kasali', 'Mizan', 2014, 9, 4, 4, 7, 1000, '/api/covers/14af12f2-df0b-4032-a2df-ba1e51cc02d4.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:09:10.818111+08');
+INSERT INTO public.books VALUES (96, '9786028997980', 'Tasawuf Modern', 'Hamka', 'Republika', 1939, 10, 3, 3, 14, 1000, '/api/covers/acaaafa8-4140-46a6-bf50-d9fe72be07ed.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:19:28.215949+08');
+INSERT INTO public.books VALUES (84, '9780307887894', 'The Lean Startup', 'Eric Ries', 'Crown Business', 2011, 8, 3, 3, 14, 1000, '/api/covers/e494fef1-b887-482f-83f4-a5dd9685d902.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:32:13.6123+08');
+INSERT INTO public.books VALUES (86, '9780857197689', 'The Psychology of Money', 'Morgan Housel', 'Harriman House', 2020, 8, 5, 5, 14, 1000, '/api/covers/edbf4c45-1ee0-45c3-90a4-29779d08a678.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:38:35.040163+08');
+INSERT INTO public.books VALUES (85, '9780374533557', 'Thinking, Fast and Slow', 'Daniel Kahneman', 'Farrar, Straus and Giroux', 2011, 8, 4, 4, 14, 1000, '/api/covers/e5318104-0dcb-42e8-b26a-d5c2706b21e6.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:40:39.848354+08');
+INSERT INTO public.books VALUES (83, '9780804139298', 'Zero to One', 'Peter Thiel & Blake Masters', 'Crown Business', 2014, 8, 2, 2, 14, 1000, '/api/covers/627d9353-317f-45e3-9771-530f509035e9.webp', NULL, '2026-11-23 06:54:00.608934+08', '2026-11-24 13:41:40.894236+08');
+
+
+--
+-- TOC entry 5172 (class 0 OID 19603)
+-- Dependencies: 222
+-- Data for Name: categories; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.categories VALUES (1, 'Sastra & Fiksi Indonesia', 'SFI', 'Novel, cerpen, dan karya sastra penulis Indonesia dari masa klasik hingga kontemporer.');
+INSERT INTO public.categories VALUES (2, 'Romance & Novel Populer', 'ROM', 'Novel romansa dan bacaan populer yang ringan untuk dinikmati.');
+INSERT INTO public.categories VALUES (3, 'Fantasi & Fiksi Ilmiah', 'FAN', 'Dunia imajinasi: fantasi, petualangan, dan fiksi ilmiah.');
+INSERT INTO public.categories VALUES (4, 'Fiksi Dunia, Sastra Klasik & Thriller', 'FDK', 'Karya sastra dunia, novel klasik, dan cerita misteri atau thriller.');
+INSERT INTO public.categories VALUES (5, 'Sejarah, Politik & Biografi', 'SPB', 'Buku sejarah, pemikiran politik, serta kisah hidup tokoh.');
+INSERT INTO public.categories VALUES (6, 'Sains Populer & Kesehatan', 'SAI', 'Ilmu pengetahuan alam dan kesehatan yang ditulis dengan bahasa populer.');
+INSERT INTO public.categories VALUES (7, 'Komputer & Teknologi', 'KOM', 'Pemrograman, rekayasa perangkat lunak, algoritma, dan kecerdasan buatan.');
+INSERT INTO public.categories VALUES (8, 'Bisnis & Ekonomi', 'BIS', 'Kewirausahaan, keuangan, dan ilmu ekonomi populer.');
+INSERT INTO public.categories VALUES (9, 'Pengembangan Diri, Psikologi & Filsafat', 'PDF', 'Kebiasaan, psikologi, dan filsafat hidup untuk berkembang.');
+INSERT INTO public.categories VALUES (10, 'Agama & Spiritualitas', 'AGM', 'Bacaan keagamaan dan spiritualitas.');
+INSERT INTO public.categories VALUES (13, 'Horor', 'HR', 'Ceritanya sering mengangkat ancaman yang tidak wajar atau mencekam, seperti makhluk gaib, monster, pembunuh sadis, kutukan, atau tekanan psikologis ekstrem');
+
+
+--
+-- TOC entry 5182 (class 0 OID 19755)
+-- Dependencies: 232
+-- Data for Name: fines; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.fines VALUES (1, 3, 7, 2, 1000, 2000, 'Lunas', '2026-10-10 06:54:00.608934+08', '2026-10-11 06:54:00.608934+08', 2);
+INSERT INTO public.fines VALUES (2, 7, 7, 3, 1000, 3000, 'Tertunggak', '2026-11-03 06:54:00.608934+08', NULL, NULL);
+
+
+--
+-- TOC entry 5180 (class 0 OID 19727)
+-- Dependencies: 230
+-- Data for Name: loan_extensions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.loan_extensions VALUES (1, 5, 'Ditolak', '2026-10-18 06:54:00.608934+08', '2026-10-21', NULL, 2, '2026-10-18 06:54:00.608934+08', 'Buku sedang banyak diminati. Mohon dikembalikan sesuai jatuh tempo.');
+INSERT INTO public.loan_extensions VALUES (2, 4, 'Disetujui', '2026-10-14 06:54:00.608934+08', '2026-10-18', '2026-11-01', 2, '2026-10-14 06:54:00.608934+08', NULL);
+INSERT INTO public.loan_extensions VALUES (4, 283, 'Disetujui', '2026-11-23 10:28:53.9197+08', '2026-12-07', '2026-12-21', 2, '2026-11-23 10:29:29.271833+08', NULL);
+INSERT INTO public.loan_extensions VALUES (3, 11, 'Disetujui', '2026-11-22 06:54:00.608934+08', '2026-11-27', '2026-12-11', 2, '2026-11-23 10:29:33.759911+08', NULL);
+INSERT INTO public.loan_extensions VALUES (5, 285, 'Ditolak', '2026-11-23 13:00:39.003865+08', '2026-12-07', NULL, 2, '2026-11-23 13:01:02.445576+08', 'Lain kali aja ya');
+
+
+--
+-- TOC entry 5178 (class 0 OID 19682)
+-- Dependencies: 228
+-- Data for Name: loans; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.loans VALUES (1, 5, 1, 'Selesai', '2026-08-24 06:54:00.608934+08', '2026-08-25', '2026-09-08', '2026-09-04', 0, NULL, 2, 2);
+INSERT INTO public.loans VALUES (2, 6, 1, 'Selesai', '2026-09-23 06:54:00.608934+08', '2026-09-24', '2026-10-08', '2026-10-07', 0, NULL, 3, 3);
+INSERT INTO public.loans VALUES (3, 7, 5, 'Selesai', '2026-09-23 06:54:00.608934+08', '2026-09-24', '2026-10-08', '2026-10-10', 0, NULL, 3, 3);
+INSERT INTO public.loans VALUES (4, 4, 63, 'Selesai', '2026-10-03 06:54:00.608934+08', '2026-10-04', '2026-11-01', '2026-10-30', 1, NULL, 3, 2);
+INSERT INTO public.loans VALUES (5, 4, 90, 'Selesai', '2026-10-13 06:54:00.608934+08', '2026-10-14', '2026-10-21', '2026-10-19', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (6, 4, 1, 'Selesai', '2026-10-23 06:54:00.608934+08', '2026-10-24', '2026-11-07', '2026-10-29', 0, NULL, 2, 2);
+INSERT INTO public.loans VALUES (7, 7, 88, 'Selesai', '2026-10-23 06:54:00.608934+08', '2026-10-24', '2026-10-31', '2026-11-03', 0, NULL, 2, 2);
+INSERT INTO public.loans VALUES (8, 6, 9, 'Ditolak', '2026-11-03 06:54:00.608934+08', NULL, NULL, NULL, 0, 'Buku sedang menjalani perawatan sampul. Silakan ajukan kembali minggu depan.', 3, NULL);
+INSERT INTO public.loans VALUES (9, 8, 11, 'Selesai', '2026-11-05 06:54:00.608934+08', '2026-11-06', '2026-11-20', '2026-11-13', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (10, 6, 21, 'Sedang Dipinjam', '2026-11-11 06:54:00.608934+08', '2026-11-11', '2026-11-18', NULL, 0, NULL, 2, NULL);
+INSERT INTO public.loans VALUES (12, 5, 72, 'Sedang Dipinjam', '2026-11-20 06:54:00.608934+08', '2026-11-20', '2026-12-04', NULL, 0, NULL, 2, NULL);
+INSERT INTO public.loans VALUES (13, 4, 35, 'Menunggu Konfirmasi', '2026-11-23 06:54:00.608934+08', NULL, NULL, NULL, 0, NULL, NULL, NULL);
+INSERT INTO public.loans VALUES (14, 5, 86, 'Menunggu Konfirmasi', '2026-11-23 06:54:00.608934+08', NULL, NULL, NULL, 0, NULL, NULL, NULL);
+INSERT INTO public.loans VALUES (15, 7, 1, 'Selesai', '2026-06-30 06:54:00.608934+08', '2026-07-01', '2026-07-15', '2026-07-05', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (16, 6, 2, 'Selesai', '2026-08-03 06:54:00.608934+08', '2026-08-04', '2026-08-18', '2026-08-08', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (17, 8, 2, 'Selesai', '2026-06-29 06:54:00.608934+08', '2026-06-30', '2026-07-14', '2026-07-04', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (18, 4, 2, 'Selesai', '2026-05-25 06:54:00.608934+08', '2026-05-26', '2026-06-09', '2026-05-30', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (19, 7, 3, 'Selesai', '2026-08-02 06:54:00.608934+08', '2026-08-03', '2026-08-17', '2026-08-07', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (20, 9, 3, 'Selesai', '2026-06-28 06:54:00.608934+08', '2026-06-29', '2026-07-13', '2026-07-03', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (21, 8, 4, 'Selesai', '2026-08-01 06:54:00.608934+08', '2026-08-02', '2026-08-16', '2026-08-06', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (22, 4, 4, 'Selesai', '2026-06-27 06:54:00.608934+08', '2026-06-28', '2026-07-12', '2026-07-02', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (23, 6, 4, 'Selesai', '2026-05-23 06:54:00.608934+08', '2026-05-24', '2026-06-07', '2026-05-28', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (24, 9, 5, 'Selesai', '2026-07-31 06:54:00.608934+08', '2026-08-01', '2026-08-15', '2026-08-05', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (25, 5, 5, 'Selesai', '2026-06-26 06:54:00.608934+08', '2026-06-27', '2026-07-11', '2026-07-01', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (26, 4, 6, 'Selesai', '2026-07-30 06:54:00.608934+08', '2026-07-31', '2026-08-14', '2026-08-04', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (27, 6, 6, 'Selesai', '2026-06-25 06:54:00.608934+08', '2026-06-26', '2026-07-10', '2026-06-30', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (28, 8, 6, 'Selesai', '2026-05-21 06:54:00.608934+08', '2026-05-22', '2026-06-05', '2026-05-26', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (29, 5, 7, 'Selesai', '2026-07-29 06:54:00.608934+08', '2026-07-30', '2026-08-13', '2026-08-03', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (30, 7, 7, 'Selesai', '2026-06-24 06:54:00.608934+08', '2026-06-25', '2026-07-09', '2026-06-29', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (31, 6, 8, 'Selesai', '2026-07-28 06:54:00.608934+08', '2026-07-29', '2026-08-12', '2026-08-02', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (32, 8, 8, 'Selesai', '2026-06-23 06:54:00.608934+08', '2026-06-24', '2026-07-08', '2026-06-28', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (33, 4, 8, 'Selesai', '2026-05-19 06:54:00.608934+08', '2026-05-20', '2026-06-03', '2026-05-24', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (34, 7, 9, 'Selesai', '2026-07-27 06:54:00.608934+08', '2026-07-28', '2026-08-11', '2026-08-01', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (35, 9, 9, 'Selesai', '2026-06-22 06:54:00.608934+08', '2026-06-23', '2026-07-07', '2026-06-27', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (36, 8, 10, 'Selesai', '2026-07-26 06:54:00.608934+08', '2026-07-27', '2026-08-10', '2026-07-31', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (37, 4, 10, 'Selesai', '2026-06-21 06:54:00.608934+08', '2026-06-22', '2026-07-06', '2026-06-26', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (38, 6, 10, 'Selesai', '2026-05-17 06:54:00.608934+08', '2026-05-18', '2026-06-01', '2026-05-22', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (39, 9, 11, 'Selesai', '2026-07-25 06:54:00.608934+08', '2026-07-26', '2026-08-09', '2026-07-30', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (40, 5, 11, 'Selesai', '2026-06-20 06:54:00.608934+08', '2026-06-21', '2026-07-05', '2026-06-25', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (41, 4, 12, 'Selesai', '2026-07-24 06:54:00.608934+08', '2026-07-25', '2026-08-08', '2026-07-29', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (42, 6, 12, 'Selesai', '2026-06-19 06:54:00.608934+08', '2026-06-20', '2026-07-04', '2026-06-24', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (43, 8, 12, 'Selesai', '2026-05-15 06:54:00.608934+08', '2026-05-16', '2026-05-30', '2026-05-20', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (44, 5, 13, 'Selesai', '2026-07-23 06:54:00.608934+08', '2026-07-24', '2026-08-07', '2026-07-28', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (45, 7, 13, 'Selesai', '2026-06-18 06:54:00.608934+08', '2026-06-19', '2026-07-03', '2026-06-23', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (46, 6, 14, 'Selesai', '2026-07-22 06:54:00.608934+08', '2026-07-23', '2026-08-06', '2026-07-27', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (47, 8, 14, 'Selesai', '2026-06-17 06:54:00.608934+08', '2026-06-18', '2026-07-02', '2026-06-22', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (48, 4, 14, 'Selesai', '2026-05-13 06:54:00.608934+08', '2026-05-14', '2026-05-28', '2026-05-18', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (49, 7, 15, 'Selesai', '2026-07-21 06:54:00.608934+08', '2026-07-22', '2026-08-05', '2026-07-26', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (50, 9, 15, 'Selesai', '2026-06-16 06:54:00.608934+08', '2026-06-17', '2026-07-01', '2026-06-21', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (51, 8, 16, 'Selesai', '2026-07-20 06:54:00.608934+08', '2026-07-21', '2026-08-04', '2026-07-25', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (52, 4, 16, 'Selesai', '2026-06-15 06:54:00.608934+08', '2026-06-16', '2026-06-30', '2026-06-20', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (53, 6, 16, 'Selesai', '2026-05-11 06:54:00.608934+08', '2026-05-12', '2026-05-26', '2026-05-16', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (54, 9, 17, 'Selesai', '2026-07-19 06:54:00.608934+08', '2026-07-20', '2026-08-03', '2026-07-24', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (55, 5, 17, 'Selesai', '2026-06-14 06:54:00.608934+08', '2026-06-15', '2026-06-29', '2026-06-19', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (56, 4, 18, 'Selesai', '2026-07-18 06:54:00.608934+08', '2026-07-19', '2026-08-02', '2026-07-23', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (57, 6, 18, 'Selesai', '2026-06-13 06:54:00.608934+08', '2026-06-14', '2026-06-28', '2026-06-18', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (58, 8, 18, 'Selesai', '2026-05-09 06:54:00.608934+08', '2026-05-10', '2026-05-24', '2026-05-14', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (59, 5, 19, 'Selesai', '2026-07-17 06:54:00.608934+08', '2026-07-18', '2026-08-01', '2026-07-22', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (60, 7, 19, 'Selesai', '2026-06-12 06:54:00.608934+08', '2026-06-13', '2026-06-27', '2026-06-17', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (61, 6, 20, 'Selesai', '2026-07-16 06:54:00.608934+08', '2026-07-17', '2026-07-31', '2026-07-21', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (62, 8, 20, 'Selesai', '2026-06-11 06:54:00.608934+08', '2026-06-12', '2026-06-26', '2026-06-16', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (63, 4, 20, 'Selesai', '2026-05-07 06:54:00.608934+08', '2026-05-08', '2026-05-22', '2026-05-12', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (64, 7, 21, 'Selesai', '2026-07-15 06:54:00.608934+08', '2026-07-16', '2026-07-23', '2026-07-20', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (65, 9, 21, 'Selesai', '2026-06-10 06:54:00.608934+08', '2026-06-11', '2026-06-18', '2026-06-15', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (66, 8, 22, 'Selesai', '2026-07-14 06:54:00.608934+08', '2026-07-15', '2026-07-22', '2026-07-19', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (67, 4, 22, 'Selesai', '2026-06-09 06:54:00.608934+08', '2026-06-10', '2026-06-17', '2026-06-14', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (68, 6, 22, 'Selesai', '2026-05-05 06:54:00.608934+08', '2026-05-06', '2026-05-13', '2026-05-10', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (69, 9, 23, 'Selesai', '2026-07-13 06:54:00.608934+08', '2026-07-14', '2026-07-21', '2026-07-18', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (70, 5, 23, 'Selesai', '2026-06-08 06:54:00.608934+08', '2026-06-09', '2026-06-16', '2026-06-13', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (71, 4, 24, 'Selesai', '2026-07-12 06:54:00.608934+08', '2026-07-13', '2026-07-20', '2026-07-17', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (72, 6, 24, 'Selesai', '2026-06-07 06:54:00.608934+08', '2026-06-08', '2026-06-15', '2026-06-12', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (73, 8, 24, 'Selesai', '2026-05-03 06:54:00.608934+08', '2026-05-04', '2026-05-11', '2026-05-08', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (74, 5, 25, 'Selesai', '2026-07-11 06:54:00.608934+08', '2026-07-12', '2026-07-19', '2026-07-16', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (75, 7, 25, 'Selesai', '2026-06-06 06:54:00.608934+08', '2026-06-07', '2026-06-14', '2026-06-11', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (76, 6, 26, 'Selesai', '2026-07-10 06:54:00.608934+08', '2026-07-11', '2026-07-18', '2026-07-15', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (77, 8, 26, 'Selesai', '2026-06-05 06:54:00.608934+08', '2026-06-06', '2026-06-13', '2026-06-10', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (78, 4, 26, 'Selesai', '2026-05-01 06:54:00.608934+08', '2026-05-02', '2026-05-09', '2026-05-06', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (79, 7, 27, 'Selesai', '2026-07-09 06:54:00.608934+08', '2026-07-10', '2026-07-17', '2026-07-14', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (80, 9, 27, 'Selesai', '2026-06-04 06:54:00.608934+08', '2026-06-05', '2026-06-12', '2026-06-09', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (81, 8, 28, 'Selesai', '2026-07-08 06:54:00.608934+08', '2026-07-09', '2026-07-16', '2026-07-13', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (82, 4, 28, 'Selesai', '2026-06-03 06:54:00.608934+08', '2026-06-04', '2026-06-11', '2026-06-08', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (83, 6, 28, 'Selesai', '2026-04-29 06:54:00.608934+08', '2026-04-30', '2026-05-07', '2026-05-04', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (84, 9, 29, 'Selesai', '2026-07-07 06:54:00.608934+08', '2026-07-08', '2026-07-15', '2026-07-12', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (85, 5, 29, 'Selesai', '2026-06-02 06:54:00.608934+08', '2026-06-03', '2026-06-10', '2026-06-07', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (86, 4, 30, 'Selesai', '2026-07-06 06:54:00.608934+08', '2026-07-07', '2026-07-14', '2026-07-11', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (87, 6, 30, 'Selesai', '2026-06-01 06:54:00.608934+08', '2026-06-02', '2026-06-09', '2026-06-06', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (88, 8, 30, 'Selesai', '2026-04-27 06:54:00.608934+08', '2026-04-28', '2026-05-05', '2026-05-02', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (89, 5, 31, 'Selesai', '2026-07-05 06:54:00.608934+08', '2026-07-06', '2026-07-20', '2026-07-10', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (90, 7, 31, 'Selesai', '2026-05-31 06:54:00.608934+08', '2026-06-01', '2026-06-15', '2026-06-05', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (91, 6, 32, 'Selesai', '2026-07-04 06:54:00.608934+08', '2026-07-05', '2026-07-19', '2026-07-09', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (92, 8, 32, 'Selesai', '2026-05-30 06:54:00.608934+08', '2026-05-31', '2026-06-14', '2026-06-04', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (93, 4, 32, 'Selesai', '2026-04-25 06:54:00.608934+08', '2026-04-26', '2026-05-10', '2026-04-30', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (94, 7, 33, 'Selesai', '2026-07-03 06:54:00.608934+08', '2026-07-04', '2026-07-18', '2026-07-08', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (95, 9, 33, 'Selesai', '2026-05-29 06:54:00.608934+08', '2026-05-30', '2026-06-13', '2026-06-03', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (96, 8, 34, 'Selesai', '2026-07-02 06:54:00.608934+08', '2026-07-03', '2026-07-17', '2026-07-07', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (97, 4, 34, 'Selesai', '2026-05-28 06:54:00.608934+08', '2026-05-29', '2026-06-12', '2026-06-02', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (98, 6, 34, 'Selesai', '2026-04-23 06:54:00.608934+08', '2026-04-24', '2026-05-08', '2026-04-28', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (99, 9, 35, 'Selesai', '2026-07-01 06:54:00.608934+08', '2026-07-02', '2026-07-16', '2026-07-06', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (100, 5, 35, 'Selesai', '2026-05-27 06:54:00.608934+08', '2026-05-28', '2026-06-11', '2026-06-01', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (101, 4, 36, 'Selesai', '2026-06-30 06:54:00.608934+08', '2026-07-01', '2026-07-15', '2026-07-05', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (102, 6, 36, 'Selesai', '2026-05-26 06:54:00.608934+08', '2026-05-27', '2026-06-10', '2026-05-31', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (103, 8, 36, 'Selesai', '2026-04-21 06:54:00.608934+08', '2026-04-22', '2026-05-06', '2026-04-26', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (104, 5, 37, 'Selesai', '2026-06-29 06:54:00.608934+08', '2026-06-30', '2026-07-14', '2026-07-04', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (105, 7, 37, 'Selesai', '2026-05-25 06:54:00.608934+08', '2026-05-26', '2026-06-09', '2026-05-30', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (106, 6, 38, 'Selesai', '2026-06-28 06:54:00.608934+08', '2026-06-29', '2026-07-13', '2026-07-03', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (107, 8, 38, 'Selesai', '2026-05-24 06:54:00.608934+08', '2026-05-25', '2026-06-08', '2026-05-29', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (108, 4, 38, 'Selesai', '2026-04-19 06:54:00.608934+08', '2026-04-20', '2026-05-04', '2026-04-24', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (109, 7, 39, 'Selesai', '2026-06-27 06:54:00.608934+08', '2026-06-28', '2026-07-12', '2026-07-02', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (110, 9, 39, 'Selesai', '2026-05-23 06:54:00.608934+08', '2026-05-24', '2026-06-07', '2026-05-28', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (111, 8, 40, 'Selesai', '2026-06-26 06:54:00.608934+08', '2026-06-27', '2026-07-11', '2026-07-01', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (112, 4, 40, 'Selesai', '2026-05-22 06:54:00.608934+08', '2026-05-23', '2026-06-06', '2026-05-27', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (113, 6, 40, 'Selesai', '2026-04-17 06:54:00.608934+08', '2026-04-18', '2026-05-02', '2026-04-22', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (114, 9, 41, 'Selesai', '2026-06-25 06:54:00.608934+08', '2026-06-26', '2026-07-10', '2026-06-30', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (115, 5, 41, 'Selesai', '2026-05-21 06:54:00.608934+08', '2026-05-22', '2026-06-05', '2026-05-26', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (116, 4, 42, 'Selesai', '2026-06-24 06:54:00.608934+08', '2026-06-25', '2026-07-09', '2026-06-29', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (117, 6, 42, 'Selesai', '2026-05-20 06:54:00.608934+08', '2026-05-21', '2026-06-04', '2026-05-25', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (118, 8, 42, 'Selesai', '2026-04-15 06:54:00.608934+08', '2026-04-16', '2026-04-30', '2026-04-20', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (119, 5, 43, 'Selesai', '2026-06-23 06:54:00.608934+08', '2026-06-24', '2026-07-08', '2026-06-28', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (120, 7, 43, 'Selesai', '2026-05-19 06:54:00.608934+08', '2026-05-20', '2026-06-03', '2026-05-24', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (121, 6, 44, 'Selesai', '2026-06-22 06:54:00.608934+08', '2026-06-23', '2026-07-07', '2026-06-27', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (122, 8, 44, 'Selesai', '2026-05-18 06:54:00.608934+08', '2026-05-19', '2026-06-02', '2026-05-23', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (123, 4, 44, 'Selesai', '2026-04-13 06:54:00.608934+08', '2026-04-14', '2026-04-28', '2026-04-18', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (124, 7, 45, 'Selesai', '2026-06-21 06:54:00.608934+08', '2026-06-22', '2026-07-06', '2026-06-26', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (125, 9, 45, 'Selesai', '2026-05-17 06:54:00.608934+08', '2026-05-18', '2026-06-01', '2026-05-22', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (126, 8, 46, 'Selesai', '2026-06-20 06:54:00.608934+08', '2026-06-21', '2026-07-05', '2026-06-25', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (127, 4, 46, 'Selesai', '2026-05-16 06:54:00.608934+08', '2026-05-17', '2026-05-31', '2026-05-21', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (128, 6, 46, 'Selesai', '2026-04-11 06:54:00.608934+08', '2026-04-12', '2026-04-26', '2026-04-16', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (129, 9, 47, 'Selesai', '2026-06-19 06:54:00.608934+08', '2026-06-20', '2026-07-04', '2026-06-24', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (130, 5, 47, 'Selesai', '2026-05-15 06:54:00.608934+08', '2026-05-16', '2026-05-30', '2026-05-20', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (131, 4, 48, 'Selesai', '2026-06-18 06:54:00.608934+08', '2026-06-19', '2026-07-03', '2026-06-23', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (132, 6, 48, 'Selesai', '2026-05-14 06:54:00.608934+08', '2026-05-15', '2026-05-29', '2026-05-19', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (133, 8, 48, 'Selesai', '2026-04-09 06:54:00.608934+08', '2026-04-10', '2026-04-24', '2026-04-14', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (134, 5, 49, 'Selesai', '2026-06-17 06:54:00.608934+08', '2026-06-18', '2026-07-02', '2026-06-22', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (135, 7, 49, 'Selesai', '2026-05-13 06:54:00.608934+08', '2026-05-14', '2026-05-28', '2026-05-18', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (136, 6, 50, 'Selesai', '2026-06-16 06:54:00.608934+08', '2026-06-17', '2026-07-01', '2026-06-21', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (137, 8, 50, 'Selesai', '2026-05-12 06:54:00.608934+08', '2026-05-13', '2026-05-27', '2026-05-17', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (138, 4, 50, 'Selesai', '2026-04-07 06:54:00.608934+08', '2026-04-08', '2026-04-22', '2026-04-12', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (139, 7, 51, 'Selesai', '2026-06-15 06:54:00.608934+08', '2026-06-16', '2026-06-30', '2026-06-20', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (140, 9, 51, 'Selesai', '2026-05-11 06:54:00.608934+08', '2026-05-12', '2026-05-26', '2026-05-16', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (141, 8, 52, 'Selesai', '2026-06-14 06:54:00.608934+08', '2026-06-15', '2026-06-29', '2026-06-19', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (142, 4, 52, 'Selesai', '2026-05-10 06:54:00.608934+08', '2026-05-11', '2026-05-25', '2026-05-15', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (143, 6, 52, 'Selesai', '2026-04-05 06:54:00.608934+08', '2026-04-06', '2026-04-20', '2026-04-10', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (144, 9, 53, 'Selesai', '2026-06-13 06:54:00.608934+08', '2026-06-14', '2026-06-28', '2026-06-18', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (145, 5, 53, 'Selesai', '2026-05-09 06:54:00.608934+08', '2026-05-10', '2026-05-24', '2026-05-14', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (146, 4, 54, 'Selesai', '2026-06-12 06:54:00.608934+08', '2026-06-13', '2026-06-27', '2026-06-17', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (147, 6, 54, 'Selesai', '2026-05-08 06:54:00.608934+08', '2026-05-09', '2026-05-23', '2026-05-13', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (148, 8, 54, 'Selesai', '2026-04-03 06:54:00.608934+08', '2026-04-04', '2026-04-18', '2026-04-08', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (149, 5, 55, 'Selesai', '2026-06-11 06:54:00.608934+08', '2026-06-12', '2026-06-26', '2026-06-16', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (150, 7, 55, 'Selesai', '2026-05-07 06:54:00.608934+08', '2026-05-08', '2026-05-22', '2026-05-12', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (151, 6, 56, 'Selesai', '2026-06-10 06:54:00.608934+08', '2026-06-11', '2026-06-25', '2026-06-15', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (152, 8, 56, 'Selesai', '2026-05-06 06:54:00.608934+08', '2026-05-07', '2026-05-21', '2026-05-11', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (153, 4, 56, 'Selesai', '2026-04-01 06:54:00.608934+08', '2026-04-02', '2026-04-16', '2026-04-06', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (154, 7, 57, 'Selesai', '2026-06-09 06:54:00.608934+08', '2026-06-10', '2026-06-24', '2026-06-14', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (155, 9, 57, 'Selesai', '2026-05-05 06:54:00.608934+08', '2026-05-06', '2026-05-20', '2026-05-10', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (156, 8, 58, 'Selesai', '2026-06-08 06:54:00.608934+08', '2026-06-09', '2026-06-23', '2026-06-13', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (157, 4, 58, 'Selesai', '2026-05-04 06:54:00.608934+08', '2026-05-05', '2026-05-19', '2026-05-09', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (158, 6, 58, 'Selesai', '2026-03-30 06:54:00.608934+08', '2026-03-31', '2026-04-14', '2026-04-04', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (159, 9, 59, 'Selesai', '2026-06-07 06:54:00.608934+08', '2026-06-08', '2026-06-22', '2026-06-12', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (160, 5, 59, 'Selesai', '2026-05-03 06:54:00.608934+08', '2026-05-04', '2026-05-18', '2026-05-08', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (161, 4, 60, 'Selesai', '2026-06-06 06:54:00.608934+08', '2026-06-07', '2026-06-21', '2026-06-11', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (162, 6, 60, 'Selesai', '2026-05-02 06:54:00.608934+08', '2026-05-03', '2026-05-17', '2026-05-07', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (163, 8, 60, 'Selesai', '2026-03-28 06:54:00.608934+08', '2026-03-29', '2026-04-12', '2026-04-02', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (164, 5, 61, 'Selesai', '2026-06-05 06:54:00.608934+08', '2026-06-06', '2026-06-20', '2026-06-10', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (165, 7, 61, 'Selesai', '2026-05-01 06:54:00.608934+08', '2026-05-02', '2026-05-16', '2026-05-06', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (166, 6, 62, 'Selesai', '2026-06-04 06:54:00.608934+08', '2026-06-05', '2026-06-19', '2026-06-09', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (167, 8, 62, 'Selesai', '2026-04-30 06:54:00.608934+08', '2026-05-01', '2026-05-15', '2026-05-05', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (168, 4, 62, 'Selesai', '2026-03-26 06:54:00.608934+08', '2026-03-27', '2026-04-10', '2026-03-31', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (169, 7, 63, 'Selesai', '2026-06-03 06:54:00.608934+08', '2026-06-04', '2026-06-18', '2026-06-08', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (170, 9, 63, 'Selesai', '2026-04-29 06:54:00.608934+08', '2026-04-30', '2026-05-14', '2026-05-04', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (171, 8, 64, 'Selesai', '2026-06-02 06:54:00.608934+08', '2026-06-03', '2026-06-17', '2026-06-07', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (172, 4, 64, 'Selesai', '2026-04-28 06:54:00.608934+08', '2026-04-29', '2026-05-13', '2026-05-03', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (173, 6, 64, 'Selesai', '2026-03-24 06:54:00.608934+08', '2026-03-25', '2026-04-08', '2026-03-29', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (174, 9, 65, 'Selesai', '2026-06-01 06:54:00.608934+08', '2026-06-02', '2026-06-16', '2026-06-06', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (175, 5, 65, 'Selesai', '2026-04-27 06:54:00.608934+08', '2026-04-28', '2026-05-12', '2026-05-02', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (176, 4, 66, 'Selesai', '2026-05-31 06:54:00.608934+08', '2026-06-01', '2026-06-15', '2026-06-05', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (177, 6, 66, 'Selesai', '2026-04-26 06:54:00.608934+08', '2026-04-27', '2026-05-11', '2026-05-01', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (178, 8, 66, 'Selesai', '2026-03-22 06:54:00.608934+08', '2026-03-23', '2026-04-06', '2026-03-27', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (179, 5, 67, 'Selesai', '2026-05-30 06:54:00.608934+08', '2026-05-31', '2026-06-14', '2026-06-04', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (180, 7, 67, 'Selesai', '2026-04-25 06:54:00.608934+08', '2026-04-26', '2026-05-10', '2026-04-30', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (181, 6, 68, 'Selesai', '2026-05-29 06:54:00.608934+08', '2026-05-30', '2026-06-13', '2026-06-03', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (182, 8, 68, 'Selesai', '2026-04-24 06:54:00.608934+08', '2026-04-25', '2026-05-09', '2026-04-29', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (183, 4, 68, 'Selesai', '2026-03-20 06:54:00.608934+08', '2026-03-21', '2026-04-04', '2026-03-25', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (184, 7, 69, 'Selesai', '2026-05-28 06:54:00.608934+08', '2026-05-29', '2026-06-12', '2026-06-02', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (185, 9, 69, 'Selesai', '2026-04-23 06:54:00.608934+08', '2026-04-24', '2026-05-08', '2026-04-28', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (186, 8, 70, 'Selesai', '2026-05-27 06:54:00.608934+08', '2026-05-28', '2026-06-11', '2026-06-01', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (187, 4, 70, 'Selesai', '2026-04-22 06:54:00.608934+08', '2026-04-23', '2026-05-07', '2026-04-27', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (188, 6, 70, 'Selesai', '2026-03-18 06:54:00.608934+08', '2026-03-19', '2026-04-02', '2026-03-23', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (189, 9, 71, 'Selesai', '2026-05-26 06:54:00.608934+08', '2026-05-27', '2026-06-10', '2026-05-31', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (190, 5, 71, 'Selesai', '2026-04-21 06:54:00.608934+08', '2026-04-22', '2026-05-06', '2026-04-26', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (191, 4, 72, 'Selesai', '2026-05-25 06:54:00.608934+08', '2026-05-26', '2026-06-09', '2026-05-30', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (192, 6, 72, 'Selesai', '2026-04-20 06:54:00.608934+08', '2026-04-21', '2026-05-05', '2026-04-25', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (193, 8, 72, 'Selesai', '2026-03-16 06:54:00.608934+08', '2026-03-17', '2026-03-31', '2026-03-21', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (194, 5, 73, 'Selesai', '2026-05-24 06:54:00.608934+08', '2026-05-25', '2026-06-08', '2026-05-29', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (195, 7, 73, 'Selesai', '2026-04-19 06:54:00.608934+08', '2026-04-20', '2026-05-04', '2026-04-24', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (196, 6, 74, 'Selesai', '2026-05-23 06:54:00.608934+08', '2026-05-24', '2026-06-07', '2026-05-28', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (197, 8, 74, 'Selesai', '2026-04-18 06:54:00.608934+08', '2026-04-19', '2026-05-03', '2026-04-23', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (198, 4, 74, 'Selesai', '2026-03-14 06:54:00.608934+08', '2026-03-15', '2026-03-29', '2026-03-19', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (199, 7, 75, 'Selesai', '2026-05-22 06:54:00.608934+08', '2026-05-23', '2026-06-06', '2026-05-27', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (200, 9, 75, 'Selesai', '2026-04-17 06:54:00.608934+08', '2026-04-18', '2026-05-02', '2026-04-22', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (201, 8, 76, 'Selesai', '2026-05-21 06:54:00.608934+08', '2026-05-22', '2026-06-05', '2026-05-26', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (202, 4, 76, 'Selesai', '2026-04-16 06:54:00.608934+08', '2026-04-17', '2026-05-01', '2026-04-21', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (203, 6, 76, 'Selesai', '2026-03-12 06:54:00.608934+08', '2026-03-13', '2026-03-27', '2026-03-17', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (204, 9, 77, 'Selesai', '2026-05-20 06:54:00.608934+08', '2026-05-21', '2026-06-04', '2026-05-25', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (205, 5, 77, 'Selesai', '2026-04-15 06:54:00.608934+08', '2026-04-16', '2026-04-30', '2026-04-20', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (206, 4, 78, 'Selesai', '2026-05-19 06:54:00.608934+08', '2026-05-20', '2026-06-03', '2026-05-24', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (207, 6, 78, 'Selesai', '2026-04-14 06:54:00.608934+08', '2026-04-15', '2026-04-29', '2026-04-19', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (208, 8, 78, 'Selesai', '2026-03-10 06:54:00.608934+08', '2026-03-11', '2026-03-25', '2026-03-15', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (209, 5, 79, 'Selesai', '2026-05-18 06:54:00.608934+08', '2026-05-19', '2026-06-02', '2026-05-23', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (210, 7, 79, 'Selesai', '2026-04-13 06:54:00.608934+08', '2026-04-14', '2026-04-28', '2026-04-18', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (211, 6, 80, 'Selesai', '2026-05-17 06:54:00.608934+08', '2026-05-18', '2026-06-01', '2026-05-22', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (212, 8, 80, 'Selesai', '2026-04-12 06:54:00.608934+08', '2026-04-13', '2026-04-27', '2026-04-17', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (213, 4, 80, 'Selesai', '2026-03-08 06:54:00.608934+08', '2026-03-09', '2026-03-23', '2026-03-13', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (214, 7, 81, 'Selesai', '2026-05-16 06:54:00.608934+08', '2026-05-17', '2026-05-31', '2026-05-21', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (215, 9, 81, 'Selesai', '2026-04-11 06:54:00.608934+08', '2026-04-12', '2026-04-26', '2026-04-16', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (216, 8, 82, 'Selesai', '2026-05-15 06:54:00.608934+08', '2026-05-16', '2026-05-30', '2026-05-20', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (217, 4, 82, 'Selesai', '2026-04-10 06:54:00.608934+08', '2026-04-11', '2026-04-25', '2026-04-15', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (218, 6, 82, 'Selesai', '2026-03-06 06:54:00.608934+08', '2026-03-07', '2026-03-21', '2026-03-11', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (219, 9, 83, 'Selesai', '2026-05-14 06:54:00.608934+08', '2026-05-15', '2026-05-29', '2026-05-19', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (220, 5, 83, 'Selesai', '2026-04-09 06:54:00.608934+08', '2026-04-10', '2026-04-24', '2026-04-14', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (221, 4, 84, 'Selesai', '2026-05-13 06:54:00.608934+08', '2026-05-14', '2026-05-28', '2026-05-18', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (222, 6, 84, 'Selesai', '2026-04-08 06:54:00.608934+08', '2026-04-09', '2026-04-23', '2026-04-13', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (223, 8, 84, 'Selesai', '2026-03-04 06:54:00.608934+08', '2026-03-05', '2026-03-19', '2026-03-09', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (224, 5, 85, 'Selesai', '2026-05-12 06:54:00.608934+08', '2026-05-13', '2026-05-27', '2026-05-17', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (225, 7, 85, 'Selesai', '2026-04-07 06:54:00.608934+08', '2026-04-08', '2026-04-22', '2026-04-12', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (226, 6, 86, 'Selesai', '2026-05-11 06:54:00.608934+08', '2026-05-12', '2026-05-26', '2026-05-16', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (227, 8, 86, 'Selesai', '2026-04-06 06:54:00.608934+08', '2026-04-07', '2026-04-21', '2026-04-11', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (228, 4, 86, 'Selesai', '2026-03-02 06:54:00.608934+08', '2026-03-03', '2026-03-17', '2026-03-07', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (229, 7, 87, 'Selesai', '2026-05-10 06:54:00.608934+08', '2026-05-11', '2026-05-25', '2026-05-15', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (230, 9, 87, 'Selesai', '2026-04-05 06:54:00.608934+08', '2026-04-06', '2026-04-20', '2026-04-10', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (231, 8, 88, 'Selesai', '2026-05-09 06:54:00.608934+08', '2026-05-10', '2026-05-17', '2026-05-14', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (232, 4, 88, 'Selesai', '2026-04-04 06:54:00.608934+08', '2026-04-05', '2026-04-12', '2026-04-09', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (233, 6, 88, 'Selesai', '2026-02-28 06:54:00.608934+08', '2026-03-01', '2026-03-08', '2026-03-05', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (234, 9, 89, 'Selesai', '2026-05-08 06:54:00.608934+08', '2026-05-09', '2026-05-16', '2026-05-13', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (235, 5, 89, 'Selesai', '2026-04-03 06:54:00.608934+08', '2026-04-04', '2026-04-11', '2026-04-08', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (236, 6, 90, 'Selesai', '2026-04-02 06:54:00.608934+08', '2026-04-03', '2026-04-10', '2026-04-07', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (237, 8, 90, 'Selesai', '2026-02-26 06:54:00.608934+08', '2026-02-27', '2026-03-06', '2026-03-03', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (238, 5, 91, 'Selesai', '2026-05-06 06:54:00.608934+08', '2026-05-07', '2026-05-14', '2026-05-11', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (239, 7, 91, 'Selesai', '2026-04-01 06:54:00.608934+08', '2026-04-02', '2026-04-09', '2026-04-06', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (240, 6, 92, 'Selesai', '2026-05-05 06:54:00.608934+08', '2026-05-06', '2026-05-13', '2026-05-10', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (241, 8, 92, 'Selesai', '2026-03-31 06:54:00.608934+08', '2026-04-01', '2026-04-08', '2026-04-05', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (242, 4, 92, 'Selesai', '2026-02-24 06:54:00.608934+08', '2026-02-25', '2026-03-04', '2026-03-01', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (243, 7, 93, 'Selesai', '2026-05-04 06:54:00.608934+08', '2026-05-05', '2026-05-12', '2026-05-09', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (244, 9, 93, 'Selesai', '2026-03-30 06:54:00.608934+08', '2026-03-31', '2026-04-07', '2026-04-04', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (245, 8, 94, 'Selesai', '2026-05-03 06:54:00.608934+08', '2026-05-04', '2026-05-11', '2026-05-08', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (246, 4, 94, 'Selesai', '2026-03-29 06:54:00.608934+08', '2026-03-30', '2026-04-06', '2026-04-03', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (247, 6, 94, 'Selesai', '2026-02-22 06:54:00.608934+08', '2026-02-23', '2026-03-02', '2026-02-27', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (248, 9, 95, 'Selesai', '2026-05-02 06:54:00.608934+08', '2026-05-03', '2026-05-10', '2026-05-07', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (249, 5, 95, 'Selesai', '2026-03-28 06:54:00.608934+08', '2026-03-29', '2026-04-05', '2026-04-02', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (250, 4, 96, 'Selesai', '2026-05-01 06:54:00.608934+08', '2026-05-02', '2026-05-16', '2026-05-06', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (251, 6, 96, 'Selesai', '2026-03-27 06:54:00.608934+08', '2026-03-28', '2026-04-11', '2026-04-01', 0, NULL, 3, 2);
+INSERT INTO public.loans VALUES (252, 8, 96, 'Selesai', '2026-02-20 06:54:00.608934+08', '2026-02-21', '2026-03-07', '2026-02-25', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (253, 7, 1, 'Selesai', '2026-04-26 06:54:00.608934+08', '2026-04-27', '2026-05-11', '2026-05-01', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (254, 8, 1, 'Selesai', '2026-03-27 06:54:00.608934+08', '2026-03-28', '2026-04-11', '2026-04-01', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (255, 9, 1, 'Selesai', '2026-02-25 06:54:00.608934+08', '2026-02-26', '2026-03-12', '2026-03-02', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (256, 7, 1, 'Selesai', '2026-01-26 06:54:00.608934+08', '2026-01-27', '2026-02-10', '2026-01-31', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (257, 8, 1, 'Selesai', '2025-12-27 06:54:00.608934+08', '2025-12-28', '2026-01-11', '2026-01-01', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (258, 9, 1, 'Selesai', '2025-11-27 06:54:00.608934+08', '2025-11-28', '2025-12-12', '2025-12-02', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (259, 4, 10, 'Selesai', '2026-05-11 06:54:00.608934+08', '2026-05-12', '2026-05-26', '2026-05-16', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (260, 5, 10, 'Selesai', '2026-04-11 06:54:00.608934+08', '2026-04-12', '2026-04-26', '2026-04-16', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (261, 6, 10, 'Selesai', '2026-03-12 06:54:00.608934+08', '2026-03-13', '2026-03-27', '2026-03-17', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (262, 7, 10, 'Selesai', '2026-02-10 06:54:00.608934+08', '2026-02-11', '2026-02-25', '2026-02-15', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (263, 8, 10, 'Selesai', '2026-01-11 06:54:00.608934+08', '2026-01-12', '2026-01-26', '2026-01-16', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (264, 9, 10, 'Selesai', '2025-12-12 06:54:00.608934+08', '2025-12-13', '2025-12-27', '2025-12-17', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (265, 4, 10, 'Selesai', '2025-11-12 06:54:00.608934+08', '2025-11-13', '2025-11-27', '2025-11-17', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (266, 5, 90, 'Selesai', '2026-05-06 06:54:00.608934+08', '2026-05-07', '2026-05-14', '2026-05-11', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (267, 6, 90, 'Selesai', '2026-04-01 06:54:00.608934+08', '2026-04-02', '2026-04-09', '2026-04-06', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (268, 7, 90, 'Selesai', '2026-03-02 06:54:00.608934+08', '2026-03-03', '2026-03-10', '2026-03-07', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (269, 8, 90, 'Selesai', '2026-01-31 06:54:00.608934+08', '2026-02-01', '2026-02-08', '2026-02-05', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (270, 9, 90, 'Selesai', '2026-01-01 06:54:00.608934+08', '2026-01-02', '2026-01-09', '2026-01-06', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (271, 6, 63, 'Selesai', '2026-04-21 06:54:00.608934+08', '2026-04-22', '2026-05-06', '2026-04-26', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (272, 7, 63, 'Selesai', '2026-03-17 06:54:00.608934+08', '2026-03-18', '2026-04-01', '2026-03-22', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (273, 8, 63, 'Selesai', '2026-02-05 06:54:00.608934+08', '2026-02-06', '2026-02-20', '2026-02-10', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (274, 4, 72, 'Selesai', '2026-05-01 06:54:00.608934+08', '2026-05-02', '2026-05-16', '2026-05-06', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (275, 6, 72, 'Selesai', '2026-03-22 06:54:00.608934+08', '2026-03-23', '2026-04-06', '2026-03-27', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (276, 8, 72, 'Selesai', '2026-02-15 06:54:00.608934+08', '2026-02-16', '2026-03-02', '2026-02-20', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (277, 4, 5, 'Selesai', '2026-04-16 06:54:00.608934+08', '2026-04-17', '2026-05-01', '2026-04-21', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (278, 5, 5, 'Selesai', '2026-03-07 06:54:00.608934+08', '2026-03-08', '2026-03-22', '2026-03-12', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (279, 4, 86, 'Selesai', '2026-04-06 06:54:00.608934+08', '2026-04-07', '2026-04-21', '2026-04-11', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (280, 7, 86, 'Selesai', '2026-02-20 06:54:00.608934+08', '2026-02-21', '2026-03-07', '2026-02-25', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (281, 5, 88, 'Selesai', '2026-03-27 06:54:00.608934+08', '2026-03-28', '2026-04-04', '2026-04-01', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (282, 8, 88, 'Selesai', '2026-02-10 06:54:00.608934+08', '2026-02-11', '2026-02-18', '2026-02-15', 0, NULL, 2, 3);
+INSERT INTO public.loans VALUES (11, 5, 63, 'Sedang Dipinjam', '2026-11-13 06:54:00.608934+08', '2026-11-13', '2026-12-11', NULL, 1, NULL, 3, NULL);
+INSERT INTO public.loans VALUES (283, 10, 1, 'Selesai', '2026-11-23 10:24:42.336076+08', '2026-11-23', '2026-12-21', '2026-11-23', 1, NULL, 2, 2);
+INSERT INTO public.loans VALUES (284, 10, 67, 'Menunggu Konfirmasi', '2026-11-23 10:46:05.695174+08', NULL, NULL, NULL, 0, NULL, NULL, NULL);
+INSERT INTO public.loans VALUES (285, 10, 80, 'Selesai', '2026-11-23 12:55:47.906887+08', '2026-11-23', '2026-12-07', '2026-11-23', 0, NULL, 2, 2);
+INSERT INTO public.loans VALUES (286, 12, 22, 'Sedang Dipinjam', '2026-11-23 19:30:20.621543+08', '2026-11-23', '2026-11-30', NULL, 0, NULL, 2, NULL);
+INSERT INTO public.loans VALUES (287, 10, 1, 'Menunggu Konfirmasi', '2026-11-24 07:32:07.753279+08', NULL, NULL, NULL, 0, NULL, NULL, NULL);
+INSERT INTO public.loans VALUES (288, 10, 33, 'Selesai', '2026-11-24 18:30:31.60699+08', '2026-11-24', '2026-12-08', '2026-11-24', 0, NULL, 2, 2);
+INSERT INTO public.loans VALUES (290, 10, 4, 'Sedang Dipinjam', '2026-11-24 20:54:57.150023+08', '2026-11-24', '2026-12-08', NULL, 0, NULL, 3, NULL);
+INSERT INTO public.loans VALUES (289, 13, 33, 'Selesai', '2026-11-24 18:34:53.956208+08', '2026-11-24', '2026-12-08', '2026-11-25', 0, NULL, 2, 2);
+INSERT INTO public.loans VALUES (291, 13, 33, 'Selesai', '2026-11-25 13:55:13.928316+08', '2026-11-25', '2026-12-09', '2026-11-25', 0, NULL, 2, 2);
+INSERT INTO public.loans VALUES (292, 13, 5, 'Selesai', '2026-11-25 16:48:11.316657+08', '2026-11-25', '2026-12-09', '2026-11-25', 0, NULL, 2, 2);
+
+
+--
+-- TOC entry 5188 (class 0 OID 19855)
+-- Dependencies: 238
+-- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.notifications VALUES (1, 5, 'Persetujuan', 'Pengajuan pinjaman buku Clean Code disetujui. Silakan ambil bukunya di meja sirkulasi.', false, NULL, '2026-11-20 08:54:00.608934+08');
+INSERT INTO public.notifications VALUES (2, 6, 'Penolakan', 'Pengajuan pinjaman buku Pulang ditolak. Alasan: Buku sedang menjalani perawatan sampul.', true, NULL, '2026-11-03 16:54:00.608934+08');
+INSERT INTO public.notifications VALUES (3, 7, 'Denda', 'Denda baru tercatat untuk buku Filosofi Teras sebesar Rp 3.000. Mohon lunasi di meja sirkulasi.', false, NULL, '2026-11-03 06:54:00.608934+08');
+INSERT INTO public.notifications VALUES (6, 5, 'Perpanjangan', 'Perpanjangan buku Sapiens disetujui. Jatuh tempo baru: 2026-12-11.', false, 11, '2026-11-23 10:29:33.759911+08');
+INSERT INTO public.notifications VALUES (9, 12, 'Persetujuan', 'Pengajuan pinjaman buku Mariposa disetujui. Jatuh tempo: 2026-11-30.', false, 286, '2026-11-23 19:30:48.578475+08');
+INSERT INTO public.notifications VALUES (8, 10, 'Perpanjangan', 'Perpanjangan buku Artificial Intelligence: A Modern Approach (4th ed.) ditolak. Alasan: Lain kali aja ya', true, 285, '2026-11-23 13:01:02.445576+08');
+INSERT INTO public.notifications VALUES (7, 10, 'Persetujuan', 'Pengajuan pinjaman buku Artificial Intelligence: A Modern Approach (4th ed.) disetujui. Jatuh tempo: 2026-12-07.', true, 285, '2026-11-23 13:00:23.61362+08');
+INSERT INTO public.notifications VALUES (5, 10, 'Perpanjangan', 'Perpanjangan buku Laskar Pelangi disetujui. Jatuh tempo baru: 2026-12-21.', true, 283, '2026-11-23 10:29:29.271833+08');
+INSERT INTO public.notifications VALUES (4, 10, 'Persetujuan', 'Pengajuan pinjaman buku Laskar Pelangi disetujui. Jatuh tempo: 2026-12-07.', true, 283, '2026-11-23 10:28:27.860069+08');
+INSERT INTO public.notifications VALUES (10, 10, 'Persetujuan', 'Pengajuan pinjaman buku Hujan disetujui. Jatuh tempo: 2026-12-08.', false, 288, '2026-11-24 18:30:48.209105+08');
+INSERT INTO public.notifications VALUES (12, 4, 'Reservasi', 'Buku Hujan yang Anda reservasi siap diambil. Ajukan pinjam dalam 2 hari.', false, NULL, '2026-11-24 18:36:34.871329+08');
+INSERT INTO public.notifications VALUES (11, 13, 'Persetujuan', 'Pengajuan pinjaman buku Hujan disetujui. Jatuh tempo: 2026-12-08.', true, 289, '2026-11-24 18:35:06.987979+08');
+INSERT INTO public.notifications VALUES (13, 10, 'Persetujuan', 'Pengajuan pinjaman buku Ayah disetujui. Jatuh tempo: 2026-12-08.', false, 290, '2026-11-24 20:55:18.844903+08');
+INSERT INTO public.notifications VALUES (14, 13, 'Persetujuan', 'Pengajuan pinjaman buku Hujan disetujui. Jatuh tempo: 2026-12-09.', true, 291, '2026-11-25 13:55:50.508154+08');
+INSERT INTO public.notifications VALUES (15, 13, 'Persetujuan', 'Pengajuan pinjaman buku Bumi Manusia disetujui. Jatuh tempo: 2026-12-09.', true, 292, '2026-11-25 16:48:33.761017+08');
+
+
+--
+-- TOC entry 5186 (class 0 OID 19829)
+-- Dependencies: 236
+-- Data for Name: reservations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.reservations VALUES (1, 21, 4, 'Menunggu', '2026-11-22 06:54:00.608934+08', NULL);
+INSERT INTO public.reservations VALUES (2, 21, 10, 'Menunggu', '2026-11-24 18:27:55.45496+08', NULL);
+INSERT INTO public.reservations VALUES (3, 33, 4, 'Dibatalkan', '2026-11-24 18:36:02.954849+08', '2026-11-26 18:36:34.871329+08');
+
+
+--
+-- TOC entry 5184 (class 0 OID 19795)
+-- Dependencies: 234
+-- Data for Name: reviews; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.reviews VALUES (1, 6, 1, 4, 5, 'Kisah persahabatan dan perjuangan yang sangat menyentuh. Cocok dibaca semua usia.', '2026-10-30 06:54:00.608934+08');
+INSERT INTO public.reviews VALUES (2, 4, 63, 4, 4, 'Rangkuman sejarah manusia yang mudah dipahami, walau agak tebal.', '2026-10-31 06:54:00.608934+08');
+INSERT INTO public.reviews VALUES (3, 1, 1, 5, 5, 'Bahasanya indah, ceritanya mengalir. Saya sampai ingin membacanya lagi.', '2026-09-05 06:54:00.608934+08');
+INSERT INTO public.reviews VALUES (4, 2, 1, 6, 5, 'Novel yang membuat saya kembali semangat belajar.', '2026-10-08 06:54:00.608934+08');
+INSERT INTO public.reviews VALUES (5, 3, 5, 7, 4, 'Sejarah yang dikemas dalam cerita. Butuh waktu, tetapi sangat layak dibaca.', '2026-10-11 06:54:00.608934+08');
+INSERT INTO public.reviews VALUES (6, 15, 1, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-05 10:00:00+08');
+INSERT INTO public.reviews VALUES (7, 254, 1, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-01 10:00:00+08');
+INSERT INTO public.reviews VALUES (8, 255, 1, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-03-02 10:00:00+08');
+INSERT INTO public.reviews VALUES (9, 16, 2, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-08-08 10:00:00+08');
+INSERT INTO public.reviews VALUES (10, 17, 2, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-07-04 10:00:00+08');
+INSERT INTO public.reviews VALUES (11, 18, 2, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-30 10:00:00+08');
+INSERT INTO public.reviews VALUES (12, 19, 3, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-08-07 10:00:00+08');
+INSERT INTO public.reviews VALUES (13, 20, 3, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-03 10:00:00+08');
+INSERT INTO public.reviews VALUES (14, 21, 4, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-08-06 10:00:00+08');
+INSERT INTO public.reviews VALUES (15, 22, 4, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-02 10:00:00+08');
+INSERT INTO public.reviews VALUES (16, 23, 4, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-28 10:00:00+08');
+INSERT INTO public.reviews VALUES (17, 24, 5, 9, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-08-05 10:00:00+08');
+INSERT INTO public.reviews VALUES (18, 25, 5, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-01 10:00:00+08');
+INSERT INTO public.reviews VALUES (19, 277, 5, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-21 10:00:00+08');
+INSERT INTO public.reviews VALUES (20, 26, 6, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-08-04 10:00:00+08');
+INSERT INTO public.reviews VALUES (21, 27, 6, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-30 10:00:00+08');
+INSERT INTO public.reviews VALUES (22, 28, 6, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-26 10:00:00+08');
+INSERT INTO public.reviews VALUES (23, 29, 7, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-08-03 10:00:00+08');
+INSERT INTO public.reviews VALUES (24, 30, 7, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-29 10:00:00+08');
+INSERT INTO public.reviews VALUES (25, 31, 8, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-08-02 10:00:00+08');
+INSERT INTO public.reviews VALUES (26, 32, 8, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-28 10:00:00+08');
+INSERT INTO public.reviews VALUES (27, 33, 8, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-24 10:00:00+08');
+INSERT INTO public.reviews VALUES (28, 34, 9, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-08-01 10:00:00+08');
+INSERT INTO public.reviews VALUES (29, 35, 9, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-27 10:00:00+08');
+INSERT INTO public.reviews VALUES (30, 36, 10, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-31 10:00:00+08');
+INSERT INTO public.reviews VALUES (31, 37, 10, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-26 10:00:00+08');
+INSERT INTO public.reviews VALUES (32, 38, 10, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-22 10:00:00+08');
+INSERT INTO public.reviews VALUES (33, 9, 11, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-11-13 10:00:00+08');
+INSERT INTO public.reviews VALUES (34, 39, 11, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-07-30 10:00:00+08');
+INSERT INTO public.reviews VALUES (35, 40, 11, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-25 10:00:00+08');
+INSERT INTO public.reviews VALUES (36, 41, 12, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-29 10:00:00+08');
+INSERT INTO public.reviews VALUES (37, 42, 12, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-24 10:00:00+08');
+INSERT INTO public.reviews VALUES (38, 43, 12, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-20 10:00:00+08');
+INSERT INTO public.reviews VALUES (39, 44, 13, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-28 10:00:00+08');
+INSERT INTO public.reviews VALUES (40, 45, 13, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-23 10:00:00+08');
+INSERT INTO public.reviews VALUES (41, 46, 14, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-07-27 10:00:00+08');
+INSERT INTO public.reviews VALUES (42, 47, 14, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-22 10:00:00+08');
+INSERT INTO public.reviews VALUES (43, 48, 14, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-18 10:00:00+08');
+INSERT INTO public.reviews VALUES (44, 49, 15, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-26 10:00:00+08');
+INSERT INTO public.reviews VALUES (45, 50, 15, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-21 10:00:00+08');
+INSERT INTO public.reviews VALUES (46, 51, 16, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-25 10:00:00+08');
+INSERT INTO public.reviews VALUES (47, 52, 16, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-20 10:00:00+08');
+INSERT INTO public.reviews VALUES (48, 53, 16, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-16 10:00:00+08');
+INSERT INTO public.reviews VALUES (49, 54, 17, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-07-24 10:00:00+08');
+INSERT INTO public.reviews VALUES (50, 55, 17, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-19 10:00:00+08');
+INSERT INTO public.reviews VALUES (51, 56, 18, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-23 10:00:00+08');
+INSERT INTO public.reviews VALUES (52, 57, 18, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-18 10:00:00+08');
+INSERT INTO public.reviews VALUES (53, 58, 18, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-14 10:00:00+08');
+INSERT INTO public.reviews VALUES (54, 59, 19, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-22 10:00:00+08');
+INSERT INTO public.reviews VALUES (55, 60, 19, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-17 10:00:00+08');
+INSERT INTO public.reviews VALUES (56, 61, 20, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-07-21 10:00:00+08');
+INSERT INTO public.reviews VALUES (57, 62, 20, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-16 10:00:00+08');
+INSERT INTO public.reviews VALUES (58, 63, 20, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-12 10:00:00+08');
+INSERT INTO public.reviews VALUES (59, 64, 21, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-20 10:00:00+08');
+INSERT INTO public.reviews VALUES (60, 65, 21, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-15 10:00:00+08');
+INSERT INTO public.reviews VALUES (61, 66, 22, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-19 10:00:00+08');
+INSERT INTO public.reviews VALUES (62, 67, 22, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-14 10:00:00+08');
+INSERT INTO public.reviews VALUES (63, 68, 22, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-10 10:00:00+08');
+INSERT INTO public.reviews VALUES (64, 69, 23, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-07-18 10:00:00+08');
+INSERT INTO public.reviews VALUES (65, 70, 23, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-13 10:00:00+08');
+INSERT INTO public.reviews VALUES (66, 71, 24, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-17 10:00:00+08');
+INSERT INTO public.reviews VALUES (67, 72, 24, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-12 10:00:00+08');
+INSERT INTO public.reviews VALUES (68, 73, 24, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-08 10:00:00+08');
+INSERT INTO public.reviews VALUES (69, 74, 25, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-16 10:00:00+08');
+INSERT INTO public.reviews VALUES (70, 75, 25, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-11 10:00:00+08');
+INSERT INTO public.reviews VALUES (71, 76, 26, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-07-15 10:00:00+08');
+INSERT INTO public.reviews VALUES (72, 77, 26, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-10 10:00:00+08');
+INSERT INTO public.reviews VALUES (73, 78, 26, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-06 10:00:00+08');
+INSERT INTO public.reviews VALUES (74, 79, 27, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-14 10:00:00+08');
+INSERT INTO public.reviews VALUES (75, 80, 27, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-09 10:00:00+08');
+INSERT INTO public.reviews VALUES (76, 81, 28, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-13 10:00:00+08');
+INSERT INTO public.reviews VALUES (77, 82, 28, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-08 10:00:00+08');
+INSERT INTO public.reviews VALUES (78, 83, 28, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-04 10:00:00+08');
+INSERT INTO public.reviews VALUES (79, 84, 29, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-07-12 10:00:00+08');
+INSERT INTO public.reviews VALUES (80, 85, 29, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-07 10:00:00+08');
+INSERT INTO public.reviews VALUES (81, 86, 30, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-11 10:00:00+08');
+INSERT INTO public.reviews VALUES (82, 87, 30, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-06 10:00:00+08');
+INSERT INTO public.reviews VALUES (83, 88, 30, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-02 10:00:00+08');
+INSERT INTO public.reviews VALUES (84, 89, 31, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-10 10:00:00+08');
+INSERT INTO public.reviews VALUES (85, 90, 31, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-05 10:00:00+08');
+INSERT INTO public.reviews VALUES (86, 91, 32, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-07-09 10:00:00+08');
+INSERT INTO public.reviews VALUES (87, 92, 32, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-04 10:00:00+08');
+INSERT INTO public.reviews VALUES (88, 93, 32, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-30 10:00:00+08');
+INSERT INTO public.reviews VALUES (89, 94, 33, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-08 10:00:00+08');
+INSERT INTO public.reviews VALUES (90, 95, 33, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-03 10:00:00+08');
+INSERT INTO public.reviews VALUES (91, 96, 34, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-07 10:00:00+08');
+INSERT INTO public.reviews VALUES (92, 97, 34, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-02 10:00:00+08');
+INSERT INTO public.reviews VALUES (93, 98, 34, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-28 10:00:00+08');
+INSERT INTO public.reviews VALUES (94, 99, 35, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-07-06 10:00:00+08');
+INSERT INTO public.reviews VALUES (95, 100, 35, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-01 10:00:00+08');
+INSERT INTO public.reviews VALUES (96, 101, 36, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-05 10:00:00+08');
+INSERT INTO public.reviews VALUES (97, 102, 36, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-31 10:00:00+08');
+INSERT INTO public.reviews VALUES (98, 103, 36, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-26 10:00:00+08');
+INSERT INTO public.reviews VALUES (99, 104, 37, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-04 10:00:00+08');
+INSERT INTO public.reviews VALUES (100, 105, 37, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-30 10:00:00+08');
+INSERT INTO public.reviews VALUES (101, 106, 38, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-07-03 10:00:00+08');
+INSERT INTO public.reviews VALUES (102, 107, 38, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-29 10:00:00+08');
+INSERT INTO public.reviews VALUES (103, 108, 38, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-24 10:00:00+08');
+INSERT INTO public.reviews VALUES (104, 109, 39, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-07-02 10:00:00+08');
+INSERT INTO public.reviews VALUES (105, 110, 39, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-28 10:00:00+08');
+INSERT INTO public.reviews VALUES (106, 111, 40, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-07-01 10:00:00+08');
+INSERT INTO public.reviews VALUES (107, 112, 40, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-27 10:00:00+08');
+INSERT INTO public.reviews VALUES (108, 113, 40, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-22 10:00:00+08');
+INSERT INTO public.reviews VALUES (109, 114, 41, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-30 10:00:00+08');
+INSERT INTO public.reviews VALUES (110, 115, 41, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-26 10:00:00+08');
+INSERT INTO public.reviews VALUES (111, 116, 42, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-29 10:00:00+08');
+INSERT INTO public.reviews VALUES (112, 117, 42, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-25 10:00:00+08');
+INSERT INTO public.reviews VALUES (113, 118, 42, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-20 10:00:00+08');
+INSERT INTO public.reviews VALUES (114, 119, 43, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-28 10:00:00+08');
+INSERT INTO public.reviews VALUES (115, 120, 43, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-24 10:00:00+08');
+INSERT INTO public.reviews VALUES (116, 121, 44, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-27 10:00:00+08');
+INSERT INTO public.reviews VALUES (117, 122, 44, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-23 10:00:00+08');
+INSERT INTO public.reviews VALUES (118, 123, 44, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-18 10:00:00+08');
+INSERT INTO public.reviews VALUES (119, 124, 45, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-26 10:00:00+08');
+INSERT INTO public.reviews VALUES (120, 125, 45, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-22 10:00:00+08');
+INSERT INTO public.reviews VALUES (121, 126, 46, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-25 10:00:00+08');
+INSERT INTO public.reviews VALUES (122, 127, 46, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-21 10:00:00+08');
+INSERT INTO public.reviews VALUES (123, 128, 46, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-16 10:00:00+08');
+INSERT INTO public.reviews VALUES (124, 129, 47, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-24 10:00:00+08');
+INSERT INTO public.reviews VALUES (125, 130, 47, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-20 10:00:00+08');
+INSERT INTO public.reviews VALUES (126, 131, 48, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-23 10:00:00+08');
+INSERT INTO public.reviews VALUES (127, 132, 48, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-19 10:00:00+08');
+INSERT INTO public.reviews VALUES (128, 133, 48, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-14 10:00:00+08');
+INSERT INTO public.reviews VALUES (129, 134, 49, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-22 10:00:00+08');
+INSERT INTO public.reviews VALUES (130, 135, 49, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-18 10:00:00+08');
+INSERT INTO public.reviews VALUES (131, 136, 50, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-21 10:00:00+08');
+INSERT INTO public.reviews VALUES (132, 137, 50, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-17 10:00:00+08');
+INSERT INTO public.reviews VALUES (133, 138, 50, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-12 10:00:00+08');
+INSERT INTO public.reviews VALUES (134, 139, 51, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-20 10:00:00+08');
+INSERT INTO public.reviews VALUES (135, 140, 51, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-16 10:00:00+08');
+INSERT INTO public.reviews VALUES (136, 141, 52, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-19 10:00:00+08');
+INSERT INTO public.reviews VALUES (137, 142, 52, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-15 10:00:00+08');
+INSERT INTO public.reviews VALUES (138, 143, 52, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-10 10:00:00+08');
+INSERT INTO public.reviews VALUES (139, 144, 53, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-18 10:00:00+08');
+INSERT INTO public.reviews VALUES (140, 145, 53, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-14 10:00:00+08');
+INSERT INTO public.reviews VALUES (141, 146, 54, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-17 10:00:00+08');
+INSERT INTO public.reviews VALUES (142, 147, 54, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-13 10:00:00+08');
+INSERT INTO public.reviews VALUES (143, 148, 54, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-08 10:00:00+08');
+INSERT INTO public.reviews VALUES (144, 149, 55, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-16 10:00:00+08');
+INSERT INTO public.reviews VALUES (145, 150, 55, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-12 10:00:00+08');
+INSERT INTO public.reviews VALUES (146, 151, 56, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-15 10:00:00+08');
+INSERT INTO public.reviews VALUES (147, 152, 56, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-11 10:00:00+08');
+INSERT INTO public.reviews VALUES (148, 153, 56, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-06 10:00:00+08');
+INSERT INTO public.reviews VALUES (149, 154, 57, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-14 10:00:00+08');
+INSERT INTO public.reviews VALUES (150, 155, 57, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-10 10:00:00+08');
+INSERT INTO public.reviews VALUES (151, 156, 58, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-13 10:00:00+08');
+INSERT INTO public.reviews VALUES (152, 157, 58, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-09 10:00:00+08');
+INSERT INTO public.reviews VALUES (153, 158, 58, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-04 10:00:00+08');
+INSERT INTO public.reviews VALUES (154, 159, 59, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-12 10:00:00+08');
+INSERT INTO public.reviews VALUES (155, 160, 59, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-08 10:00:00+08');
+INSERT INTO public.reviews VALUES (156, 161, 60, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-11 10:00:00+08');
+INSERT INTO public.reviews VALUES (157, 162, 60, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-07 10:00:00+08');
+INSERT INTO public.reviews VALUES (158, 163, 60, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-02 10:00:00+08');
+INSERT INTO public.reviews VALUES (159, 164, 61, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-10 10:00:00+08');
+INSERT INTO public.reviews VALUES (160, 165, 61, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-06 10:00:00+08');
+INSERT INTO public.reviews VALUES (161, 166, 62, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-09 10:00:00+08');
+INSERT INTO public.reviews VALUES (162, 167, 62, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-05 10:00:00+08');
+INSERT INTO public.reviews VALUES (163, 168, 62, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-03-31 10:00:00+08');
+INSERT INTO public.reviews VALUES (164, 169, 63, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-08 10:00:00+08');
+INSERT INTO public.reviews VALUES (165, 170, 63, 9, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-04 10:00:00+08');
+INSERT INTO public.reviews VALUES (166, 271, 63, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-26 10:00:00+08');
+INSERT INTO public.reviews VALUES (167, 171, 64, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-07 10:00:00+08');
+INSERT INTO public.reviews VALUES (168, 172, 64, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-03 10:00:00+08');
+INSERT INTO public.reviews VALUES (169, 173, 64, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-03-29 10:00:00+08');
+INSERT INTO public.reviews VALUES (170, 174, 65, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-06 10:00:00+08');
+INSERT INTO public.reviews VALUES (171, 175, 65, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-02 10:00:00+08');
+INSERT INTO public.reviews VALUES (172, 176, 66, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-05 10:00:00+08');
+INSERT INTO public.reviews VALUES (173, 177, 66, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-01 10:00:00+08');
+INSERT INTO public.reviews VALUES (174, 178, 66, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-03-27 10:00:00+08');
+INSERT INTO public.reviews VALUES (175, 179, 67, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-04 10:00:00+08');
+INSERT INTO public.reviews VALUES (176, 180, 67, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-30 10:00:00+08');
+INSERT INTO public.reviews VALUES (177, 181, 68, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-06-03 10:00:00+08');
+INSERT INTO public.reviews VALUES (178, 182, 68, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-29 10:00:00+08');
+INSERT INTO public.reviews VALUES (179, 183, 68, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-03-25 10:00:00+08');
+INSERT INTO public.reviews VALUES (180, 184, 69, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-06-02 10:00:00+08');
+INSERT INTO public.reviews VALUES (181, 185, 69, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-28 10:00:00+08');
+INSERT INTO public.reviews VALUES (182, 186, 70, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-06-01 10:00:00+08');
+INSERT INTO public.reviews VALUES (183, 187, 70, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-27 10:00:00+08');
+INSERT INTO public.reviews VALUES (184, 188, 70, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-03-23 10:00:00+08');
+INSERT INTO public.reviews VALUES (185, 189, 71, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-31 10:00:00+08');
+INSERT INTO public.reviews VALUES (186, 190, 71, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-26 10:00:00+08');
+INSERT INTO public.reviews VALUES (187, 191, 72, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-30 10:00:00+08');
+INSERT INTO public.reviews VALUES (188, 192, 72, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-25 10:00:00+08');
+INSERT INTO public.reviews VALUES (189, 193, 72, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-03-21 10:00:00+08');
+INSERT INTO public.reviews VALUES (190, 194, 73, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-29 10:00:00+08');
+INSERT INTO public.reviews VALUES (191, 195, 73, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-24 10:00:00+08');
+INSERT INTO public.reviews VALUES (192, 196, 74, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-28 10:00:00+08');
+INSERT INTO public.reviews VALUES (193, 197, 74, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-23 10:00:00+08');
+INSERT INTO public.reviews VALUES (194, 198, 74, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-03-19 10:00:00+08');
+INSERT INTO public.reviews VALUES (195, 199, 75, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-27 10:00:00+08');
+INSERT INTO public.reviews VALUES (196, 200, 75, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-22 10:00:00+08');
+INSERT INTO public.reviews VALUES (197, 201, 76, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-26 10:00:00+08');
+INSERT INTO public.reviews VALUES (198, 202, 76, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-21 10:00:00+08');
+INSERT INTO public.reviews VALUES (199, 203, 76, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-03-17 10:00:00+08');
+INSERT INTO public.reviews VALUES (200, 204, 77, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-25 10:00:00+08');
+INSERT INTO public.reviews VALUES (201, 205, 77, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-20 10:00:00+08');
+INSERT INTO public.reviews VALUES (202, 206, 78, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-24 10:00:00+08');
+INSERT INTO public.reviews VALUES (203, 207, 78, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-19 10:00:00+08');
+INSERT INTO public.reviews VALUES (204, 208, 78, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-03-15 10:00:00+08');
+INSERT INTO public.reviews VALUES (205, 209, 79, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-23 10:00:00+08');
+INSERT INTO public.reviews VALUES (206, 210, 79, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-18 10:00:00+08');
+INSERT INTO public.reviews VALUES (207, 211, 80, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-22 10:00:00+08');
+INSERT INTO public.reviews VALUES (208, 212, 80, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-17 10:00:00+08');
+INSERT INTO public.reviews VALUES (209, 213, 80, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-03-13 10:00:00+08');
+INSERT INTO public.reviews VALUES (210, 214, 81, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-21 10:00:00+08');
+INSERT INTO public.reviews VALUES (211, 215, 81, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-16 10:00:00+08');
+INSERT INTO public.reviews VALUES (212, 216, 82, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-20 10:00:00+08');
+INSERT INTO public.reviews VALUES (213, 217, 82, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-15 10:00:00+08');
+INSERT INTO public.reviews VALUES (214, 218, 82, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-03-11 10:00:00+08');
+INSERT INTO public.reviews VALUES (215, 219, 83, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-19 10:00:00+08');
+INSERT INTO public.reviews VALUES (216, 220, 83, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-14 10:00:00+08');
+INSERT INTO public.reviews VALUES (217, 221, 84, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-18 10:00:00+08');
+INSERT INTO public.reviews VALUES (218, 222, 84, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-13 10:00:00+08');
+INSERT INTO public.reviews VALUES (219, 223, 84, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-03-09 10:00:00+08');
+INSERT INTO public.reviews VALUES (220, 224, 85, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-17 10:00:00+08');
+INSERT INTO public.reviews VALUES (221, 225, 85, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-12 10:00:00+08');
+INSERT INTO public.reviews VALUES (222, 226, 86, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-16 10:00:00+08');
+INSERT INTO public.reviews VALUES (223, 227, 86, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-11 10:00:00+08');
+INSERT INTO public.reviews VALUES (224, 228, 86, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-03-07 10:00:00+08');
+INSERT INTO public.reviews VALUES (225, 229, 87, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-15 10:00:00+08');
+INSERT INTO public.reviews VALUES (226, 230, 87, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-10 10:00:00+08');
+INSERT INTO public.reviews VALUES (227, 7, 88, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-11-03 10:00:00+08');
+INSERT INTO public.reviews VALUES (228, 231, 88, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-14 10:00:00+08');
+INSERT INTO public.reviews VALUES (229, 232, 88, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-09 10:00:00+08');
+INSERT INTO public.reviews VALUES (230, 234, 89, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-13 10:00:00+08');
+INSERT INTO public.reviews VALUES (231, 235, 89, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-08 10:00:00+08');
+INSERT INTO public.reviews VALUES (232, 5, 90, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-10-19 10:00:00+08');
+INSERT INTO public.reviews VALUES (233, 236, 90, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-07 10:00:00+08');
+INSERT INTO public.reviews VALUES (234, 237, 90, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-03-03 10:00:00+08');
+INSERT INTO public.reviews VALUES (235, 238, 91, 5, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-11 10:00:00+08');
+INSERT INTO public.reviews VALUES (236, 239, 91, 7, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-06 10:00:00+08');
+INSERT INTO public.reviews VALUES (237, 240, 92, 6, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-10 10:00:00+08');
+INSERT INTO public.reviews VALUES (238, 241, 92, 8, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-05 10:00:00+08');
+INSERT INTO public.reviews VALUES (239, 242, 92, 4, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-03-01 10:00:00+08');
+INSERT INTO public.reviews VALUES (240, 243, 93, 7, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-09 10:00:00+08');
+INSERT INTO public.reviews VALUES (241, 244, 93, 9, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-04 10:00:00+08');
+INSERT INTO public.reviews VALUES (242, 245, 94, 8, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-05-08 10:00:00+08');
+INSERT INTO public.reviews VALUES (243, 246, 94, 4, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-04-03 10:00:00+08');
+INSERT INTO public.reviews VALUES (244, 247, 94, 6, 4, 'Isinya menarik dan menambah wawasan, penyampaian bahasanya juga enak diikuti.', '2026-02-27 10:00:00+08');
+INSERT INTO public.reviews VALUES (245, 248, 95, 9, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-05-07 10:00:00+08');
+INSERT INTO public.reviews VALUES (246, 249, 95, 5, 3, 'Cukup bagus sebagai bahan bacaan dan referensi tambahan.', '2026-04-02 10:00:00+08');
+INSERT INTO public.reviews VALUES (247, 250, 96, 4, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-05-06 10:00:00+08');
+INSERT INTO public.reviews VALUES (248, 251, 96, 6, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-04-01 10:00:00+08');
+INSERT INTO public.reviews VALUES (249, 252, 96, 8, 5, 'Buku yang sangat inspiratif dan mudah dipahami. Sangat direkomendasikan untuk dibaca!', '2026-02-25 10:00:00+08');
+INSERT INTO public.reviews VALUES (250, 283, 1, 10, 5, 'sangat bagus dan melebihi ekspektasi saya, yang kurang dari film sangat tergambar jelas di buku ini', '2026-11-24 14:49:17.050471+08');
+INSERT INTO public.reviews VALUES (251, 288, 33, 10, 5, 'THE BEST BOOK I EVER READDDD, TOLONG BERIKAN LAKI LAKI SEPERTI ESOK DI HIDUP SAYAAA, WAJIB BANYAK, DALAMI, SELAMI, DAN TANGISI, TIDAK AKAN MENYESAL, KALAU BISA SUTRADARA ANGKAT BUKU INI JADI FILM, SANGAT SANGAT WOWWW', '2026-11-24 18:40:09.233871+08');
+INSERT INTO public.reviews VALUES (252, 289, 33, 13, 4, 'SANGAT BAGUS,', '2026-11-25 13:54:57.869104+08');
+INSERT INTO public.reviews VALUES (253, 291, 33, 13, 4, 'SANGAT BAG', '2026-11-25 14:00:03.737614+08');
+
+
+--
+-- TOC entry 5170 (class 0 OID 19576)
+-- Dependencies: 220
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.users VALUES (1, 'Administrator Cendekia', 'admin@cendekia.ac.id', '$2b$10$U4CS8FUPSmfp3wqo2MZp7eioDd.TH6V9ELa40pQiba/u.gjNjMg2q', 'admin', 'ADM-001', true, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.users VALUES (2, 'Hasanuddin Pratama', 'pegawai1@cendekia.ac.id', '$2b$10$di2w2osltb0SgINda.emgOEWgr4X5q0ia3l3E65lh/qNdpE.eXXoy', 'pegawai', 'PGW-001', true, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.users VALUES (3, 'Nur Aisyah', 'pegawai2@cendekia.ac.id', '$2b$10$TlLj16mwOj6T.Zgp7Xg1XODPS1CP3Y3mKGrltyY0yTFyehLn.ZX..', 'pegawai', 'PGW-002', true, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.users VALUES (4, 'Andi Pratama', 'andi.pratama@ui.ac.id', '$2b$10$f62Bbdl/oy97IOQRQLtjyu0GQekuNv22/WyvG.O4n.rEFWuihdTLa', 'mahasiswa', '2024001', true, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.users VALUES (5, 'Siti Rahmawati', 'siti.arahma@itb.ac.id', '$2b$10$kTcG76IMEOohJL8FWPQiNu30MU/Cdt.CbcIDtpMU.e8LJF7Q25juS', 'mahasiswa', '2024002', true, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.users VALUES (6, 'Ahmad Fauzan', 'ahmad.fauzan@unair.ac.id', '$2b$10$kbfZhFMWXqwyHmyDOQHf6u5RyqcRTqo38WpHtNuyu8DTg/sii47i.', 'mahasiswa', '2024003', true, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.users VALUES (7, 'Dewi Lestari', 'dewi.lestari@ipb.ac.id', '$2b$10$W8NOrVQ/tI4GibSzAZE/guQMj4wwNZ5xfirtP8BP0cIPGLVv5mGRm', 'mahasiswa', '2024004', true, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.users VALUES (8, 'Budi Santoso', 'budi.santoso88@gmail.com', '$2b$10$f62Bbdl/oy97IOQRQLtjyu0GQekuNv22/WyvG.O4n.rEFWuihdTLa', 'umum', '7374560999930001', true, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.users VALUES (9, 'Rina Marlina', 'rina.marlina@yahoo.com', '$2b$10$kTcG76IMEOohJL8FWPQiNu30MU/Cdt.CbcIDtpMU.e8LJF7Q25juS', 'umum', '7374560999930002', true, '2026-11-23 06:54:00.608934+08', '2026-11-23 06:54:00.608934+08');
+INSERT INTO public.users VALUES (10, 'Angkanara Defara', 'naradefara@gmail.com', '$2b$10$4.giCqMWq0.qyJEYUigdOuEfNrSoy9Pwf21K3X8lyfM53QMQ1M4nS', 'umum', '7374560999930003', true, '2026-11-23 07:05:37.722555+08', '2026-11-24 14:47:16.718718+08');
+INSERT INTO public.users VALUES (12, 'fadhiyah syafikah', 'fadhiyah@unhas.ac.id', '$2b$10$7h4xsRv3ZCPKJhntXIaIheuSTpPePiRulNeHxluMFILhHYx.av3D6', 'mahasiswa', 'H071251000', true, '2026-11-23 19:01:31.900257+08', '2026-11-24 14:51:12.484281+08');
+INSERT INTO public.users VALUES (13, 'Aura Calista', 'aura.calista@ui.ac.id', '$2b$10$MlGgksWmx8MpU9tBgYqUseAwknlrgeXBP0TIoISvRbu9MUGyi7l8G', 'mahasiswa', '2025008', true, '2026-11-24 18:32:35.503767+08', '2026-11-24 18:32:35.503767+08');
+
+
+--
+-- TOC entry 5204 (class 0 OID 0)
+-- Dependencies: 225
+-- Name: announcements_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.announcements_id_seq', 7, true);
+
+
+--
+-- TOC entry 5205 (class 0 OID 0)
+-- Dependencies: 223
+-- Name: books_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.books_id_seq', 97, true);
+
+
+--
+-- TOC entry 5206 (class 0 OID 0)
+-- Dependencies: 221
+-- Name: categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.categories_id_seq', 13, true);
+
+
+--
+-- TOC entry 5207 (class 0 OID 0)
+-- Dependencies: 231
+-- Name: fines_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.fines_id_seq', 2, true);
+
+
+--
+-- TOC entry 5208 (class 0 OID 0)
+-- Dependencies: 229
+-- Name: loan_extensions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.loan_extensions_id_seq', 5, true);
+
+
+--
+-- TOC entry 5209 (class 0 OID 0)
+-- Dependencies: 227
+-- Name: loans_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.loans_id_seq', 292, true);
+
+
+--
+-- TOC entry 5210 (class 0 OID 0)
+-- Dependencies: 237
+-- Name: notifications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.notifications_id_seq', 15, true);
+
+
+--
+-- TOC entry 5211 (class 0 OID 0)
+-- Dependencies: 235
+-- Name: reservations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.reservations_id_seq', 3, true);
+
+
+--
+-- TOC entry 5212 (class 0 OID 0)
+-- Dependencies: 233
+-- Name: reviews_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.reviews_id_seq', 253, true);
+
+
+--
+-- TOC entry 5213 (class 0 OID 0)
+-- Dependencies: 219
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.users_id_seq', 13, true);
+
+
+--
+-- TOC entry 4975 (class 2606 OID 19675)
+-- Name: announcements announcements_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.announcements
+    ADD CONSTRAINT announcements_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4969 (class 2606 OID 19646)
+-- Name: books books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.books
+    ADD CONSTRAINT books_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4963 (class 2606 OID 19617)
+-- Name: categories categories_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_code_key UNIQUE (code);
+
+
+--
+-- TOC entry 4965 (class 2606 OID 19615)
+-- Name: categories categories_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_name_key UNIQUE (name);
+
+
+--
+-- TOC entry 4967 (class 2606 OID 19613)
+-- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4987 (class 2606 OID 19778)
+-- Name: fines fines_loan_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.fines
+    ADD CONSTRAINT fines_loan_id_key UNIQUE (loan_id);
+
+
+--
+-- TOC entry 4989 (class 2606 OID 19776)
+-- Name: fines fines_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.fines
+    ADD CONSTRAINT fines_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4984 (class 2606 OID 19742)
+-- Name: loan_extensions loan_extensions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.loan_extensions
+    ADD CONSTRAINT loan_extensions_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4981 (class 2606 OID 19704)
+-- Name: loans loans_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.loans
+    ADD CONSTRAINT loans_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 5002 (class 2606 OID 19870)
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4998 (class 2606 OID 19842)
+-- Name: reservations reservations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT reservations_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4993 (class 2606 OID 19812)
+-- Name: reviews reviews_loan_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.reviews
+    ADD CONSTRAINT reviews_loan_id_key UNIQUE (loan_id);
+
+
+--
+-- TOC entry 4995 (class 2606 OID 19810)
+-- Name: reviews reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.reviews
+    ADD CONSTRAINT reviews_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4957 (class 2606 OID 19598)
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- TOC entry 4959 (class 2606 OID 19600)
+-- Name: users users_identity_number_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_identity_number_key UNIQUE (identity_number);
+
+
+--
+-- TOC entry 4961 (class 2606 OID 19596)
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4976 (class 1259 OID 19890)
+-- Name: idx_announce_pub; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_announce_pub ON public.announcements USING btree (status, release_date DESC);
+
+
+--
+-- TOC entry 4970 (class 1259 OID 19888)
+-- Name: idx_books_author_lower; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_books_author_lower ON public.books USING btree (lower((author)::text));
+
+
+--
+-- TOC entry 4971 (class 1259 OID 19886)
+-- Name: idx_books_category; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_books_category ON public.books USING btree (category_id);
+
+
+--
+-- TOC entry 4972 (class 1259 OID 19887)
+-- Name: idx_books_title_lower; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_books_title_lower ON public.books USING btree (lower((title)::text));
+
+
+--
+-- TOC entry 4990 (class 1259 OID 19885)
+-- Name: idx_fines_user_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_fines_user_status ON public.fines USING btree (user_id, status);
+
+
+--
+-- TOC entry 4977 (class 1259 OID 19883)
+-- Name: idx_loans_book_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_loans_book_status ON public.loans USING btree (book_id, status);
+
+
+--
+-- TOC entry 4978 (class 1259 OID 19884)
+-- Name: idx_loans_status_due; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_loans_status_due ON public.loans USING btree (status, due_date);
+
+
+--
+-- TOC entry 4979 (class 1259 OID 19882)
+-- Name: idx_loans_user_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_loans_user_status ON public.loans USING btree (user_id, status);
+
+
+--
+-- TOC entry 5000 (class 1259 OID 19891)
+-- Name: idx_notif_user_read; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_notif_user_read ON public.notifications USING btree (user_id, is_read, created_at DESC);
+
+
+--
+-- TOC entry 4996 (class 1259 OID 19892)
+-- Name: idx_reserv_book_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_reserv_book_status ON public.reservations USING btree (book_id, status, created_at);
+
+
+--
+-- TOC entry 4991 (class 1259 OID 19889)
+-- Name: idx_reviews_book; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_reviews_book ON public.reviews USING btree (book_id);
+
+
+--
+-- TOC entry 4973 (class 1259 OID 19652)
+-- Name: uq_books_isbn_active; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX uq_books_isbn_active ON public.books USING btree (isbn) WHERE (deleted_at IS NULL);
+
+
+--
+-- TOC entry 4985 (class 1259 OID 19753)
+-- Name: uq_ext_pending; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX uq_ext_pending ON public.loan_extensions USING btree (loan_id) WHERE ((status)::text = 'Diajukan'::text);
+
+
+--
+-- TOC entry 4982 (class 1259 OID 19725)
+-- Name: uq_loans_active_user_book; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX uq_loans_active_user_book ON public.loans USING btree (user_id, book_id) WHERE ((status)::text = ANY ((ARRAY['Menunggu Konfirmasi'::character varying, 'Sedang Dipinjam'::character varying, 'Perpanjangan Diajukan'::character varying])::text[]));
+
+
+--
+-- TOC entry 5003 (class 1259 OID 19881)
+-- Name: uq_notif_reminder; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX uq_notif_reminder ON public.notifications USING btree (ref_loan_id, type) WHERE ((type)::text = 'Pengingat Jatuh Tempo'::text);
+
+
+--
+-- TOC entry 4999 (class 1259 OID 19853)
+-- Name: uq_reservations_active; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX uq_reservations_active ON public.reservations USING btree (user_id, book_id) WHERE ((status)::text = ANY ((ARRAY['Menunggu'::character varying, 'Siap Diambil'::character varying])::text[]));
+
+
+--
+-- TOC entry 4955 (class 1259 OID 19601)
+-- Name: uq_users_email_lower; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX uq_users_email_lower ON public.users USING btree (lower((email)::text));
+
+
+--
+-- TOC entry 5005 (class 2606 OID 19676)
+-- Name: announcements announcements_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.announcements
+    ADD CONSTRAINT announcements_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5004 (class 2606 OID 19647)
+-- Name: books books_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.books
+    ADD CONSTRAINT books_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5012 (class 2606 OID 19779)
+-- Name: fines fines_loan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.fines
+    ADD CONSTRAINT fines_loan_id_fkey FOREIGN KEY (loan_id) REFERENCES public.loans(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5013 (class 2606 OID 19789)
+-- Name: fines fines_recorded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.fines
+    ADD CONSTRAINT fines_recorded_by_fkey FOREIGN KEY (recorded_by) REFERENCES public.users(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5014 (class 2606 OID 19784)
+-- Name: fines fines_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.fines
+    ADD CONSTRAINT fines_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5010 (class 2606 OID 19743)
+-- Name: loan_extensions loan_extensions_loan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.loan_extensions
+    ADD CONSTRAINT loan_extensions_loan_id_fkey FOREIGN KEY (loan_id) REFERENCES public.loans(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5011 (class 2606 OID 19748)
+-- Name: loan_extensions loan_extensions_processed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.loan_extensions
+    ADD CONSTRAINT loan_extensions_processed_by_fkey FOREIGN KEY (processed_by) REFERENCES public.users(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5006 (class 2606 OID 19715)
+-- Name: loans loans_approved_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.loans
+    ADD CONSTRAINT loans_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES public.users(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5007 (class 2606 OID 19710)
+-- Name: loans loans_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.loans
+    ADD CONSTRAINT loans_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.books(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5008 (class 2606 OID 19720)
+-- Name: loans loans_returned_confirmed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.loans
+    ADD CONSTRAINT loans_returned_confirmed_by_fkey FOREIGN KEY (returned_confirmed_by) REFERENCES public.users(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5009 (class 2606 OID 19705)
+-- Name: loans loans_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.loans
+    ADD CONSTRAINT loans_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5020 (class 2606 OID 19876)
+-- Name: notifications notifications_ref_loan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_ref_loan_id_fkey FOREIGN KEY (ref_loan_id) REFERENCES public.loans(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5021 (class 2606 OID 19871)
+-- Name: notifications notifications_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5018 (class 2606 OID 19843)
+-- Name: reservations reservations_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT reservations_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.books(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5019 (class 2606 OID 19848)
+-- Name: reservations reservations_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT reservations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5015 (class 2606 OID 19818)
+-- Name: reviews reviews_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.reviews
+    ADD CONSTRAINT reviews_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.books(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5016 (class 2606 OID 19813)
+-- Name: reviews reviews_loan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.reviews
+    ADD CONSTRAINT reviews_loan_id_fkey FOREIGN KEY (loan_id) REFERENCES public.loans(id) ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 5017 (class 2606 OID 19823)
+-- Name: reviews reviews_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.reviews
+    ADD CONSTRAINT reviews_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE RESTRICT;
+
+
+-- Completed on 2026-11-25 22:20:16
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict 5BPLwFg1IekI2kxJbHFtUilycvtpNffTuXC8OI86PFnwjM402K1rjrO7EoG2tmh
+
