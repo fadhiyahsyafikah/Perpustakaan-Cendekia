@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Search, SearchX } from "lucide-react";
+import { SearchX } from "lucide-react";
 import { BookCard, EmptyState, Pagination } from "@/components/ui";
-import MobileCollapse from "@/components/MobileCollapse";
+import KatalogFilter from "@/components/KatalogFilter";
 import { searchBooks, listCategoryOptions, SORT_OPTIONS } from "@/lib/data/books";
 import { str } from "@/lib/format";
-import { btn, ctl, cx } from "@/lib/styles";
+import { btn } from "@/lib/styles";
 
 export const metadata = { title: "Katalog Buku" };
 
@@ -21,76 +21,7 @@ export default async function KatalogPage({ searchParams }) {
       <h1>Katalog Buku</h1>
       <p className="mt-0 mb-5 max-w-[62ch] text-n-700">Cari buku berdasarkan judul atau pengarang, lalu saring menurut kategori.</p>
 
-      <form
-        key={`${q}-${kategori}-${urut}`}
-        action="/katalog"
-        method="get"
-        role="search"
-        className="mb-5 rounded-xl border border-n-200 bg-white p-4 shadow-sm"
-      >
-        <MobileCollapse>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_150px]">
-            <div className="relative md:col-span-2 md:row-start-1 [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:top-1/2 [&>svg]:left-3.5 [&>svg]:-translate-y-1/2 [&>svg]:text-n-500 [&_input]:pl-[46px]">
-              <Search size={20} aria-hidden="true" />
-              <input
-                id="q"
-                name="q"
-                type="search"
-                aria-label="Cari judul buku atau nama pengarang"
-                className={cx(ctl.input, "h-11")}
-                defaultValue={q}
-                placeholder="Cari judul buku atau nama pengarang..."
-              />
-            </div>
-
-            <select
-              id="kategori"
-              name="kategori"
-              aria-label="Filter kategori buku"
-              className={cx(ctl.select, "h-11 md:col-start-1 md:row-start-2")}
-              defaultValue={kategori}
-            >
-              <option value="">Kategori: Semua kategori</option>
-              {cats.map((c) => (
-                <option key={c.id} value={c.id}>
-                  Kategori: {c.name}
-                </option>
-              ))}
-            </select>
-
-            <select
-              id="urut"
-              name="urut"
-              aria-label="Urutkan daftar buku"
-              className={cx(ctl.select, "h-11 md:col-start-2 md:row-start-2")}
-              defaultValue={urut}
-            >
-              {SORT_OPTIONS.map((s) => (
-                <option key={s.value} value={s.value}>
-                  Urutkan: {s.label}
-                </option>
-              ))}
-            </select>
-
-            <button
-              type="submit"
-              className={cx(btn("primary"), "h-11 w-full justify-center md:col-start-3 md:row-start-1")}
-            >
-              Terapkan
-            </button>
-
-            <Link
-              href="/katalog"
-              className={cx(
-                btn("outline"),
-                "h-11 w-full justify-center bg-white no-underline hover:bg-navy-50 hover:no-underline md:col-start-3 md:row-start-2"
-              )}
-            >
-              Hapus
-            </Link>
-          </div>
-        </MobileCollapse>
-      </form>
+      <KatalogFilter q={q} kategori={kategori} urut={urut} categories={cats} sortOptions={SORT_OPTIONS} />
 
       <p className="mt-0 mb-4 text-n-700" aria-live="polite">
         Menampilkan <b>{data.total}</b> buku
