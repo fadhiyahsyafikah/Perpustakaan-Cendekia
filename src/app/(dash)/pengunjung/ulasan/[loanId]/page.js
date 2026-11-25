@@ -10,7 +10,7 @@ import { createReview } from "@/actions/reviews";
 import { BORROWER_ROLES, CONFIG } from "@/lib/config";
 import { btn } from "@/lib/styles";
 
-export const metadata = { title: "Tulis Ulasan" };
+export const metadata = { title: "Beri ulasan" };
 
 export default async function ReviewPage({ params }) {
   const user = await requireUser(BORROWER_ROLES);
@@ -27,7 +27,7 @@ export default async function ReviewPage({ params }) {
   if (l.status !== "Selesai" || l.reviewed) {
     return (
       <div className="grid gap-5">
-        <PageHeader title="Tulis Ulasan" back={{ href: "/pengunjung/riwayat", label: "Kembali ke riwayat" }} />
+        <PageHeader title="Beri ulasan" back={{ href: "/pengunjung/riwayat", label: "Kembali ke riwayat" }} />
         <EmptyState
           title={l.reviewed ? "Anda sudah mengulas buku ini" : "Ulasan belum dapat ditulis"}
           text={l.reviewed ? "Satu transaksi hanya dapat diulas satu kali." : "Ulasan hanya dapat ditulis setelah buku dikembalikan."}
@@ -38,7 +38,7 @@ export default async function ReviewPage({ params }) {
   }
   return (
     <div className="grid max-w-[720px] gap-5">
-      <PageHeader title="Tulis Ulasan" back={{ href: "/pengunjung/riwayat", label: "Kembali ke riwayat" }} />
+      <PageHeader title="Beri ulasan" back={{ href: "/pengunjung/riwayat", label: "Kembali ke riwayat" }} />
       <div className="rounded-lg border border-n-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="mb-5 flex items-start gap-3.5 [&>div:first-child]:w-14 [&>div:first-child]:flex-none">
           <BookCover src={l.cover_url} title={l.title} />
