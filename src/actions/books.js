@@ -72,7 +72,7 @@ export async function updateBook(prev, formData) {
   return ok("Data buku berhasil diperbarui.", { redirectTo: "/kelola/buku" });
 }
 
-// BUK-04 / BR-10: soft delete, ditolak bila masih ada pinjaman aktif atau permohonan menunggu
+// BUK-04 / BR-10: soft delete, ditolak bila stok belum lengkap atau masih ada pinjaman aktif/menunggu
 export async function deleteBook(prev, formData) {
   const auth = await authorize(STAFF);
   if (!auth.ok) return fail(auth.message);
@@ -80,8 +80,18 @@ export async function deleteBook(prev, formData) {
   if (!id.success) return fail("Buku tidak valid.");
   try {
     await withTransaction(async (c) => {
-      const b = (await c.query("SELECT id FROM books WHERE id = $1 AND deleted_at IS NULL FOR UPDATE", [id.data])).rows[0];
+      const b = (
+        await c.query(
+          "SELECT id, title, total_stock, available_stock FROM books WHERE id = $1 AND deleted_at IS NULL FOR UPDATE",
+          [id.data]
+        )
+      ).rows[0];
       if (!b) throw new BusinessError("Buku tidak ditemukan.", 404);
+      if (Number(b.available_stock) < Number(b.total_stock)) {
+        throw new BusinessError(
+          `Buku "${b.title}" tidak dapat dihapus karena stok belum lengkap (${b.available_stock} dari ${b.total_stock} eksemplar tersedia).`
+        );
+      }
       const n = (
         await c.query("SELECT COUNT(*) AS n FROM loans WHERE book_id = $1 AND status IN ('Menunggu Konfirmasi','Sedang Dipinjam','Perpanjangan Diajukan')", [id.data])
       ).rows[0].n;
