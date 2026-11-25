@@ -211,7 +211,7 @@ perpustakaan-cendekia/
 
 1. **Kloning repositori proyek:**
    ```bash
-   git clone (https://github.com/fadhiyahsyafikah/Perpustakaan-Cendekia.git)
+   git clone https://github.com/fadhiyahsyafikah/Perpustakaan-Cendekia.git
    cd Perpustakaan-Cendekia
    ```
 
